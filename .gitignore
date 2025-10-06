@@ -1,0 +1,77 @@
+# =========================================
+# 🧱 Terraform
+# =========================================
+*.tfstate
+*.tfstate.*
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Terraform variable override files
+terraform.tfvars
+*.tfvars.json
+
+# Sensitive keys
+*.pem
+*.key
+*.crt
+
+# Local Terraform output files
+*.plan
+*.log
+
+# =========================================
+# ⚙️ Ansible
+# =========================================
+*.retry
+*.log
+*.tmp
+*.bak
+
+# Ansible facts cache
+facts/
+cache/
+__pycache__/
+
+# =========================================
+# 🧩 Python (nếu dùng Ansible Python scripts)
+# =========================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+venv/
+.env/
+
+# =========================================
+# 🧰 Jenkins
+# =========================================
+# Nếu bạn copy Jenkins config để test local
+jenkins_home/
+workspace/
+logs/
+
+# =========================================
+# 🧪 System & IDE
+# =========================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# =========================================
+# 🔐 Credentials & Outputs
+# =========================================
+*.secret
+*.token
+*.bak
+outputs.json
+
+# =========================================
+# 🚀 Custom Project Specific
+# =========================================
+# Ignore generated key and terraform backups
+jenkins-iac/terraform/lt-devops-key.pem
