@@ -1,0 +1,79 @@
+[
+  {
+    "id": 1,
+    "name": "ZenBook 14 OLED",
+    "brand": "ASUS",
+    "cpu": "Intel Core i7-1360P",
+    "ram": "16GB",
+    "storage": "512GB SSD",
+    "gpu": "Intel Iris Xe",
+    "price": 1299,
+    "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "id": 2,
+    "name": "MacBook Air 13 M2",
+    "brand": "Apple",
+    "cpu": "Apple M2",
+    "ram": "8GB",
+    "storage": "256GB SSD",
+    "gpu": "Integrated",
+    "price": 1199,
+    "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "id": 3,
+    "name": "ThinkPad X1 Carbon Gen 11",
+    "brand": "Lenovo",
+    "cpu": "Intel Core i7-1355U",
+    "ram": "16GB",
+    "storage": "1TB SSD",
+    "gpu": "Intel Iris Xe",
+    "price": 1699,
+    "img": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "id": 4,
+    "name": "ROG Zephyrus G14",
+    "brand": "ASUS",
+    "cpu": "AMD Ryzen 9 7940HS",
+    "ram": "32GB",
+    "storage": "1TB SSD",
+    "gpu": "NVIDIA RTX 4070",
+    "price": 2199,
+    "img": "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "id": 5,
+    "name": "Dell XPS 15",
+    "brand": "Dell",
+    "cpu": "Intel Core i7-13700H",
+    "ram": "16GB",
+    "storage": "512GB SSD",
+    "gpu": "NVIDIA RTX 4060",
+    "price": 1999,
+    "img": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "id": 6,
+    "name": "Acer Swift 3",
+    "brand": "Acer",
+    "cpu": "Intel Core i5-1240P",
+    "ram": "8GB",
+    "storage": "512GB SSD",
+    "gpu": "Intel Iris Xe",
+    "price": 749,
+    "img": "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?q=80&w=1200&auto=format&fit=crop"
+  },
+  {
+    "id": 7,
+    "name": "HP Spectre x360 14",
+    "brand": "HP",
+    "cpu": "Intel Core i7-1355U",
+    "ram": "16GB",
+    "storage": "512GB SSD",
+    "gpu": "Intel Iris Xe",
+    "price": 1399,
+    "img": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1200&auto=format&fit=crop"
+  }
+]

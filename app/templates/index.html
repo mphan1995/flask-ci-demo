@@ -1,0 +1,30 @@
+
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Tìm chiếc <span>laptop</span> tiếp theo của bạn</h1>
+  <p>Demo shop siêu nhẹ để test CI/CD: Flask + Docker + Jenkins.</p>
+  <div class="search">
+    <input id="q" placeholder="Tìm theo tên, hãng, CPU..." />
+    <button onclick="filterProducts()">Tìm</button>
+  </div>
+</section>
+
+<section>
+  <div id="grid" class="grid">
+    {% for p in products %}
+    <div class="card">
+      <img src="{{ p.img }}" alt="{{ p.name }}" loading="lazy">
+      <div class="info">
+        <h3>{{ p.name }}</h3>
+        <p class="meta">{{ p.brand }} • {{ p.cpu }} • {{ p.ram }}</p>
+        <div class="row">
+          <span class="price">${{ '{:,.0f}'.format(p.price) }}</span>
+          <button class="buy">Thêm vào giỏ</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
