@@ -1,0 +1,2 @@
+[jenkins]
+3.208.92.104 ansible_user=ubuntu ansible_ssh_private_key_file=../terraform/lt-devops-key.pem

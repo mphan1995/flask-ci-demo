@@ -1,0 +1,49 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Cài đặt dependencies
+      apt:
+        name:
+          - openjdk-17-jre
+          - fontconfig
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - docker.io
+        state: present
+        update_cache: yes
+
+    - name: Thêm Jenkins repo
+      shell: |
+        curl -fsSL https://pkg.jenkins.io/debian/jenkins.io-2023.key | tee \
+        /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+        echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+        https://pkg.jenkins.io/debian binary/ > /etc/apt/sources.list.d/jenkins.list
+
+    - name: Cài Jenkins
+      apt:
+        name: jenkins
+        state: present
+        update_cache: yes
+
+    - name: Thêm jenkins user vào group docker
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
+
+    - name: Start Jenkins
+      systemd:
+        name: jenkins
+        enabled: yes
+        state: started
+
+    - name: Lấy mật khẩu đăng nhập Jenkins
+      shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+      register: jenkins_pass
+
+    - name: Hiển thị thông tin đăng nhập Jenkins
+      debug:
+        msg: |
+           Jenkins URL: http://{{ ansible_host }}:8080
+           Admin password: {{ jenkins_pass.stdout }}
