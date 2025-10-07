@@ -62,13 +62,12 @@ pipeline {
                 sh '''
                 if ! command -v aws &> /dev/null; then
                     echo "Installing AWS CLI v2..."
-                    sudo apt-get update -y && sudo apt-get install -y unzip curl >/dev/null
+                    sudo rm -rf aws awscliv2.zip
                     curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                    unzip -qq awscliv2.zip
+                    unzip -qq -o awscliv2.zip
                     sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
                 else
-                    echo "Updating AWS CLI..."
-                    sudo ./aws/install --update -i /usr/local/aws-cli -b /usr/local/bin || true
+                    echo "✅ AWS CLI already installed: $(aws --version)"
                 fi
 
                 aws ecr get-login-password --region $AWS_REGION | \
