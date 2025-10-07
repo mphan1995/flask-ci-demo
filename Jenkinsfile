@@ -24,11 +24,11 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying application...'
+                echo 'Deploying application on alternate port...'
                 sh '''
-                docker rm -f flask_app || true
-                docker run -d --name flask_app -p 5000:5000 flask-app:latest
+                docker run -d -p 5001:5000 flask-app:latest
                 '''
             }
         }
+    }
 }
