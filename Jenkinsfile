@@ -38,19 +38,27 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                echo '🚀 Pushing image to AWS ECR...'
+                echo '🚀 Installing AWS CLI and pushing image to AWS ECR...'
                 sh '''
-                aws ecr get-login-password --region $AWS_REGION | \
-                    docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                if ! command -v aws &> /dev/null; then
+                    echo "Installing AWS CLI v2..."
+                    apt-get update -y && apt-get install -y unzip curl >/dev/null
+                    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+                    unzip -qq awscliv2.zip
+                    ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
+                fi
 
-                # Nếu repository chưa tồn tại thì tạo mới
+                aws ecr get-login-password --region $AWS_REGION | \
+                docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
                 aws ecr describe-repositories --repository-names flask-app --region $AWS_REGION >/dev/null 2>&1 \
-                    || aws ecr create-repository --repository-name flask-app --region $AWS_REGION >/dev/null
+                || aws ecr create-repository --repository-name flask-app --region $AWS_REGION >/dev/null
 
                 docker push $ECR_REPO:$IMAGE_TAG
                 '''
             }
         }
+
 
         stage('Deploy to EKS') {
             steps {
