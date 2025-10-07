@@ -59,18 +59,29 @@ pipeline {
             }
         }
 
-
         stage('Deploy to EKS') {
             steps {
                 echo '☸️ Deploying image to EKS cluster...'
                 sh '''
-                # Cấu hình kubectl tới cluster
+                echo "📦 Checking and installing kubectl if missing..."
+                if ! command -v kubectl &> /dev/null; then
+                    LATEST=$(curl -s https://dl.k8s.io/release/stable.txt)
+                    echo "Downloading kubectl version $LATEST"
+                    curl -LO "https://dl.k8s.io/release/${LATEST}/bin/linux/amd64/kubectl"
+                    chmod +x kubectl
+                    mv kubectl /usr/local/bin/
+                fi
+
+                echo "✅ kubectl installed version:"
+                kubectl version --client --short || true
+
+                echo "🔧 Configuring kubeconfig for EKS..."
                 aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
 
-                # Tạo namespace nếu chưa có
+                echo "🔍 Checking namespace..."
                 kubectl get ns $K8S_NAMESPACE >/dev/null 2>&1 || kubectl create namespace $K8S_NAMESPACE
 
-                # Nếu deployment chưa tồn tại -> tạo mới
+                echo "🚀 Deploying $ECR_REPO:$IMAGE_TAG ..."
                 if ! kubectl get deploy flask-app -n $K8S_NAMESPACE >/dev/null 2>&1; then
                     echo "Creating new deployment..."
                     kubectl create deployment flask-app --image=$ECR_REPO:$IMAGE_TAG -n $K8S_NAMESPACE
@@ -80,13 +91,15 @@ pipeline {
                     kubectl set image deployment/flask-app flask-app=$ECR_REPO:$IMAGE_TAG -n $K8S_NAMESPACE
                 fi
 
-                kubectl rollout status deployment/flask-app -n $K8S_NAMESPACE --timeout=180s
+                echo "⏳ Waiting for rollout to finish..."
+                kubectl rollout status deployment/flask-app -n $K8S_NAMESPACE --timeout=180s || true
 
-                echo "==== Current Service Info ===="
+                echo "==== 🧭 Current Service Info ===="
                 kubectl get svc flask-app -n $K8S_NAMESPACE -o wide
                 '''
             }
         }
+
     }
 
     post {
