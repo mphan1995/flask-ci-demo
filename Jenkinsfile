@@ -58,24 +58,26 @@ pipeline {
 
         stage('Push to ECR') {
             steps {
-                echo '🚀 Installing AWS CLI and pushing image to AWS ECR...'
+                echo '🚀 Pushing image to AWS ECR...'
                 sh '''
+                # Kiểm tra AWS CLI đã tồn tại
                 if ! command -v aws &> /dev/null; then
-                    echo "Installing AWS CLI v2..."
-                    sudo rm -rf aws awscliv2.zip
-                    curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-                    unzip -qq -o awscliv2.zip
-                    sudo ./aws/install -i /usr/local/aws-cli -b /usr/local/bin
-                else
-                    echo "✅ AWS CLI already installed: $(aws --version)"
+                    echo "❌ AWS CLI not found. Please install AWS CLI v2 manually on Jenkins EC2."
+                    exit 1
                 fi
 
+                echo "✅ AWS CLI available: $(aws --version)"
+
+                # Login ECR
                 aws ecr get-login-password --region $AWS_REGION | \
                     docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
+                # Tạo repo nếu chưa có
                 aws ecr describe-repositories --repository-names flask-app --region $AWS_REGION >/dev/null 2>&1 \
                     || aws ecr create-repository --repository-name flask-app --region $AWS_REGION >/dev/null
 
+                # Push image
+                echo "🚢 Pushing image $ECR_REPO:$IMAGE_TAG to ECR..."
                 docker push $ECR_REPO:$IMAGE_TAG
                 '''
             }
