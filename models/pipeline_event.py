@@ -9,11 +9,19 @@ class PipelineEvent:
     extracted from raw pipeline logs.
     """
 
-    timestamp: Optional[str]        # ISO or raw timestamp if available
-    pipeline_name: Optional[str]    # Jenkins job / workflow name
-    stage_name: Optional[str]       # Build / Test / Deploy (chuẩn 3 stages)
-    step_name: Optional[str]        # Shell / Maven / Docker
-    log_level: str                  # INFO | WARNING | ERROR
-    message: str                    # Raw log line (cleaned)
-    raw_line: str                   # Original unmodified log line
-    source: str                     # jenkins | github | gitlab
+    # Identification
+    pipeline_name: Optional[str]
+    build_id: Optional[str]        # Jenkins build number / run id
+
+    # Context
+    stage_name: Optional[str]
+    step_name: Optional[str]
+
+    # Log details
+    timestamp: Optional[str]
+    log_level: str                 # INFO | WARNING | ERROR
+    message: str                   # Cleaned message
+    raw_line: str                  # Original log line
+
+    # Source
+    source: str                    # jenkins | github | gitlab
