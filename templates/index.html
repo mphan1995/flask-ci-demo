@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ app_name }} | Pipeline Analysis UI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="ambient"></div>
+  <main class="page">
+    <section class="hero" data-animate style="--delay: 0.05s;">
+      <div class="hero-copy">
+        <span class="badge">{{ app_name }}</span>
+        <h1>Visual DevOps pipeline analysis assistant</h1>
+        <p>
+          Upload Jenkins logs, classify root cause with a rule engine, then
+          review an AI-written explanation. Focus on key events for fast,
+          client-ready clarity.
+        </p>
+        <div class="hero-tags">
+          <span>Rules-first</span>
+          <span>AI-assisted</span>
+          <span>Focused timeline</span>
+        </div>
+      </div>
+      <div class="hero-card">
+        <h2>Quick map</h2>
+        <ul>
+          <li>Set pipeline name + build ID</li>
+          <li>Paste logs or load the sample</li>
+          <li>Get root cause + evidence + report</li>
+        </ul>
+        <div class="hero-note">
+          Local demo UI designed for client walkthroughs.
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" data-animate style="--delay: 0.1s;">
+      <div class="panel-header">
+        <h2>Analysis workspace</h2>
+        <p>Add logs, review stats, then run analysis instantly.</p>
+      </div>
+      <form id="analyze-form">
+        <div class="field-grid">
+          <label>
+            Pipeline name
+            <input id="pipeline-name" name="pipeline_name" type="text" value="{{ default_pipeline_name }}" required>
+          </label>
+          <label>
+            Build ID
+            <input id="build-id" name="build_id" type="text" value="{{ default_build_id }}" required>
+          </label>
+          <label>
+            AI provider
+            <select id="provider" name="provider">
+              <option value="mock">Mock (offline)</option>
+              <option value="openai">OpenAI (API key required)</option>
+            </select>
+            <small class="hint">Set OPENAI_API_KEY in .env to enable live AI responses.</small>
+          </label>
+        </div>
+
+        <div class="file-row">
+          <label class="file-input">
+            <input id="log-file" type="file" accept=".log,.txt">
+            <span>Choose log file</span>
+          </label>
+          <button type="button" id="load-sample" class="ghost">Load sample</button>
+          <button type="button" id="clear-form" class="ghost">Clear</button>
+          <span id="log-stats" class="log-stats">0 lines | 0 chars</span>
+        </div>
+
+        <label class="textarea-label">
+          Log content
+          <textarea id="log-text" name="log_text" placeholder="Paste Jenkins log lines here..." rows="12"></textarea>
+        </label>
+
+        <div class="action-row">
+          <button type="submit" id="analyze-btn" class="primary">Analyze logs</button>
+          <span id="status" class="status neutral">Ready to analyze</span>
+        </div>
+      </form>
+    </section>
+
+    <section id="result-panel" class="panel hidden" data-animate style="--delay: 0.15s;">
+      <div class="panel-header">
+        <h2>Analysis result</h2>
+        <p>Root cause, evidence, and AI report in Markdown.</p>
+      </div>
+      <div class="result-grid">
+        <div class="card metric-card">
+          <h3>Root cause</h3>
+          <p id="result-root-cause" class="metric">--</p>
+          <div class="metric-meta">
+            <span>Stage: <strong id="result-stage">--</strong></span>
+            <span>Events: <strong id="result-events">0</strong></span>
+          </div>
+          <div class="meter">
+            <span id="confidence-bar"></span>
+          </div>
+          <p class="confidence">Confidence: <span id="result-confidence">0%</span></p>
+        </div>
+
+        <div class="card">
+          <h3>Recent evidence</h3>
+          <ul id="evidence-list" class="list"></ul>
+        </div>
+
+        <div class="card">
+          <h3>Context timeline</h3>
+          <ul id="timeline-list" class="list"></ul>
+        </div>
+
+        <div class="card full">
+          <h3>AI report (Markdown)</h3>
+          <pre id="report-markdown"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

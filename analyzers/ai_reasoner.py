@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
+import json
 import os
-
-from models.pipeline_event import PipelineEvent
-from models.analysis_result import AnalysisResult
+from typing import List, Optional
+import urllib.error
+import urllib.request
 
 
 @dataclass
@@ -56,6 +56,64 @@ Key evidence:
     return f"{template}\n\n---\n\n{context}\n"
 
 
+def _read_env_float(key: str, default: float) -> float:
+    raw = os.environ.get(key)
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+def _call_openai_chat(prompt: str) -> str:
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY is not set.")
+
+    base_url = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1").rstrip("/")
+    model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    temperature = _read_env_float("OPENAI_TEMPERATURE", 0.2)
+    timeout_s = _read_env_float("OPENAI_TIMEOUT", 30.0)
+
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": temperature
+    }
+
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        f"{base_url}/chat/completions",
+        data=data,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+            response = json.load(resp)
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", "replace")
+        raise ValueError(f"OpenAI API error: {body}") from exc
+    except urllib.error.URLError as exc:
+        raise ValueError(f"OpenAI request failed: {exc.reason}") from exc
+
+    choices = response.get("choices") or []
+    if not choices:
+        raise ValueError("OpenAI response missing choices.")
+
+    message = (choices[0].get("message") or {}).get("content")
+    if not message:
+        raise ValueError("OpenAI response missing content.")
+
+    return message.strip()
+
+
 def explain_with_ai(
     req: AIExplainRequest,
     provider: str = "mock",
@@ -65,24 +123,28 @@ def explain_with_ai(
     EXPLAIN_ONLY: AI must not override root cause.
     provider:
       - 'mock': returns deterministic Markdown (no API needed)
-      - 'openai': calls OpenAI (you can wire later)
+      - 'openai': calls OpenAI using env config
     """
     prompt = build_prompt(req)
 
     if provider == "mock":
         # Deterministic mock to keep dev moving
         evidence_md = "\n".join([f"- `{x}`" for x in req.evidence[:10]]) or "- (none)"
-        return f"""## Summary
+        return f"""## Executive summary
 Pipeline **{req.pipeline_name}** (build **{req.build_id}**) failed at stage **{req.stage_name or "UNKNOWN"}**.
 Rule-based classification indicates **{req.root_cause}** (confidence {req.confidence}).
 
-## Root cause (rule-based)
+## Rule-based root cause
 **{req.root_cause}**
 
-## Evidence
+## AI hypothesis (non-authoritative)
+Based on the current evidence, the most likely failure mode aligns with **{req.root_cause}**,
+but validate with the diagnostics below before making structural changes.
+
+## Key evidence
 {evidence_md}
 
-## Fix suggestions
+## Remediation options
 1. Re-check dependency declarations (requirements / versions) and pin known-good versions.
 2. Clear caches / rebuild environment and retry with a clean workspace.
 3. Verify package index / registry access and authentication (if applicable).
@@ -94,16 +156,12 @@ Rule-based classification indicates **{req.root_cause}** (confidence {req.confid
 - Check network/DNS/proxy settings in the agent.
 - Capture artifact logs and environment snapshot for comparison.
 
-## Missing info
+## Missing or uncertain information
 - Exact failing command output and its exit code.
 - The dependency file (requirements.txt / pom.xml / build.gradle) and resolver config.
 - Agent environment details (OS, runtime versions, proxy).
 """
     elif provider == "openai":
-        # Placeholder: keep codebase clean; wire later when you want.
-        # We intentionally don't implement API calls here to avoid coupling.
-        raise NotImplementedError(
-            "OpenAI provider not wired yet. Use provider='mock' for now."
-        )
+        return _call_openai_chat(prompt)
     else:
         raise ValueError(f"Unknown provider: {provider}")

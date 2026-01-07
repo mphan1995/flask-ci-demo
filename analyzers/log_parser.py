@@ -40,8 +40,8 @@ def parse_jenkins_log(
             pipeline_name=pipeline_name,
             build_id=build_id,
             stage_name=current_stage,
-            step_name=None,          # v1 chưa parse step
-            timestamp=None,          # v1 chưa parse timestamp
+            step_name=None,          # v1: step parsing not implemented
+            timestamp=None,          # v1: timestamp parsing not implemented
             log_level=log_level,
             message=raw_line,
             raw_line=raw_line,

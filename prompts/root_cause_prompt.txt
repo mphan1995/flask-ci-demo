@@ -11,9 +11,10 @@ Context provided:
 Your tasks:
 - Explain the most likely underlying cause in clear technical and system-level terms.
 - Distinguish between symptoms and root causes when applicable.
-- Propose 3–6 concrete remediation options, ordered by impact and risk
+- Offer a short, non-authoritative AI hypothesis about the root cause (if helpful).
+- Propose 3-6 concrete remediation options, ordered by impact and risk
   (from least risky / quickest validation to more structural fixes).
-- Propose 2–4 targeted diagnostic checks to confirm the root cause.
+- Propose 2-4 targeted diagnostic checks to confirm the root cause.
 - Explicitly state what information is missing or ambiguous and how it affects confidence.
 - When evidence is weak, keep recommendations conservative and call it out.
 
@@ -30,6 +31,7 @@ Output requirements:
 
 ## Executive summary
 ## Rule-based root cause
+## AI hypothesis (non-authoritative)
 ## Key evidence
 ## Remediation options
 ## Diagnostic checks
