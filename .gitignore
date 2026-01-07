@@ -1,0 +1,27 @@
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== Virtual env =====
+.venv/
+venv/
+env/
+
+# ===== OS / Editor =====
+.DS_Store
+.idea/
+.vscode/
+
+# ===== Runtime outputs =====
+reports/output.md
+reports/*.md
+
+# ===== Logs / temp =====
+*.log
+*.tmp
+
+# ===== Env =====
+.env
+.env.*
