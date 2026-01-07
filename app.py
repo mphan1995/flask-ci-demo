@@ -1,6 +1,7 @@
 from analyzers.log_parser import parse_jenkins_log
 from analyzers.rule_engine import analyze_events
 from analyzers.ai_reasoner import AIExplainRequest, explain_with_ai
+from analyzers.context_builder import build_evidence_window, summarize_timeline
 
 def main():
     with open("data/sample_logs/jenkins_fail.log", "r", encoding="utf-8") as f:
@@ -21,13 +22,18 @@ def main():
             last_error_stage = e.stage_name
             break
 
+    context_events = build_evidence_window(events)
+
+    timeline = summarize_timeline(context_events)
+
     req = AIExplainRequest(
         pipeline_name="flask-ci-demo",
         build_id="42",
         stage_name=last_error_stage,
         root_cause=result.root_cause,
         confidence=result.confidence,
-        evidence=result.evidence
+        evidence=result.evidence,
+        timeline=timeline
     )
 
     md = explain_with_ai(req, provider="mock")

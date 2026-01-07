@@ -16,6 +16,8 @@ class AIExplainRequest:
     root_cause: str
     confidence: float
     evidence: List[str]
+    timeline: Optional[List[str]] = None
+
 
 
 def _load_prompt_template(path: str = "prompts/root_cause_prompt.txt") -> str:
@@ -26,17 +28,29 @@ def _load_prompt_template(path: str = "prompts/root_cause_prompt.txt") -> str:
 def build_prompt(req: AIExplainRequest) -> str:
     template = _load_prompt_template()
 
-    evidence_block = "\n".join([f"- `{line}`" for line in req.evidence[:15]])  # limit
     stage = req.stage_name or "UNKNOWN"
+
+    evidence_block = "\n".join(
+        [f"- `{line}`" for line in req.evidence[:15]]
+    ) or "- (no explicit error lines captured)"
+
+    timeline_block = ""
+    if req.timeline:
+        timeline_block = "\nTimeline (context window):\n" + "\n".join(
+            [f"- {line}" for line in req.timeline[:40]]
+        )
 
     context = f"""
 Pipeline: {req.pipeline_name}
 Build ID: {req.build_id}
 Stage: {stage}
+
 Rule-based root cause: {req.root_cause}
 Rule confidence: {req.confidence}
-Evidence:
+
+Key evidence:
 {evidence_block}
+{timeline_block}
 """.strip()
 
     return f"{template}\n\n---\n\n{context}\n"
