@@ -73,4 +73,5 @@ Các log mẫu nằm trong `data/sample_logs/` để demo nhanh:
 - Hỗ trợ nhiều nguồn log: GitLab CI, GitHub Actions.
 
 ---
-Nếu bạn cần thêm rule hoặc step mapping mới, hãy tạo issue hoặc gửi yêu cầu cụ thể.
+Nếu bạn cần thêm rule hoặc step mapping mới, hãy tạo issue hoặc gửi yêu cầu cụ thể qua max.phan@endava.com .
+Xin cám ơn !!!
