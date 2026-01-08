@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ app_name }} | Pipeline Analysis UI</title>
+  <title>{{ app_name }} | DevOps Failure Intelligence</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -12,24 +12,23 @@
     <section class="hero" data-animate style="--delay: 0.05s;">
       <div class="hero-copy">
         <span class="badge">{{ app_name }}</span>
-        <h1>Visual DevOps pipeline analysis assistant</h1>
+        <h1>DevOps failure intelligence</h1>
         <p>
-          Upload Jenkins logs, classify root cause with a rule engine, then
-          review an AI-written explanation. Focus on key events for fast,
-          client-ready clarity.
+          Turn raw pipeline logs into clear root causes, origin steps, and
+          failure surfaces. Built for fast triage and client-ready reporting.
         </p>
         <div class="hero-tags">
           <span>Rules-first</span>
           <span>AI-assisted</span>
-          <span>Focused timeline</span>
+          <span>Signal over noise</span>
         </div>
       </div>
       <div class="hero-card">
-        <h2>Quick map</h2>
+        <h2>Quick flow</h2>
         <ul>
           <li>Set pipeline name + build ID</li>
-          <li>Paste logs or load the sample</li>
-          <li>Get root cause + evidence + report</li>
+          <li>Paste logs or load a sample</li>
+          <li>Review root cause + evidence + report</li>
         </ul>
         <div class="hero-note">
           Local demo UI designed for client walkthroughs.
@@ -40,7 +39,7 @@
     <section class="panel" data-animate style="--delay: 0.1s;">
       <div class="panel-header">
         <h2>Analysis workspace</h2>
-        <p>Add logs, review stats, then run analysis instantly.</p>
+        <p>Add logs, inspect signal density, then run analysis.</p>
       </div>
       <form id="analyze-form">
         <div class="field-grid">
@@ -74,7 +73,7 @@
 
         <label class="textarea-label">
           Log content
-          <textarea id="log-text" name="log_text" placeholder="Paste Jenkins log lines here..." rows="12"></textarea>
+          <textarea id="log-text" name="log_text" placeholder="Paste pipeline logs here..." rows="12"></textarea>
         </label>
 
         <div class="action-row">
