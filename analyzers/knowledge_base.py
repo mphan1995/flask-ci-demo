@@ -55,6 +55,7 @@ STEP_KNOWLEDGE: List[StepPattern] = [
     StepPattern("terraform import", r"\bterraform\s+import\b", "terraform"),
     StepPattern("terraform refresh", r"\bterraform\s+refresh\b", "terraform"),
     StepPattern("terraform workspace", r"\bterraform\s+workspace\b", "terraform"),
+    StepPattern("terraform resource", r"\baws_[a-z0-9_]+\.", "terraform"),
     StepPattern("ansible-playbook", r"\bansible-playbook\b", "ansible"),
     StepPattern("ansible", r"\bansible\b", "ansible"),
     StepPattern("ansible-galaxy", r"\bansible-galaxy\b", "ansible"),
@@ -64,6 +65,25 @@ STEP_KNOWLEDGE: List[StepPattern] = [
     StepPattern("git pull", r"\bgit\s+pull\b", "git"),
     StepPattern("git push", r"\bgit\s+push\b", "git"),
     StepPattern("git checkout", r"\bgit\s+checkout\b", "git"),
+    StepPattern("aws cli", r"\baws\s+configure\b", "aws"),
+    StepPattern("aws eks", r"\baws\s+eks\b", "aws"),
+    StepPattern("aws ecs", r"\baws\s+ecs\b", "aws"),
+    StepPattern("aws ecr", r"\baws\s+ecr\b", "aws"),
+    StepPattern("aws iam", r"\baws\s+iam\b", "aws"),
+    StepPattern("aws sts", r"\baws\s+sts\b", "aws"),
+    StepPattern("aws s3", r"\baws\s+s3\b", "aws"),
+    StepPattern("aws ec2", r"\baws\s+ec2\b", "aws"),
+    StepPattern("aws rds", r"\baws\s+rds\b", "aws"),
+    StepPattern("aws lambda", r"\baws\s+lambda\b", "aws"),
+    StepPattern("aws cloudformation", r"\baws\s+cloudformation\b", "aws"),
+    StepPattern("aws cloudwatch", r"\baws\s+cloudwatch\b", "aws"),
+    StepPattern("aws logs", r"\baws\s+logs\b", "aws"),
+    StepPattern("aws autoscaling", r"\baws\s+autoscaling\b", "aws"),
+    StepPattern("aws secretsmanager", r"\baws\s+secretsmanager\b", "aws"),
+    StepPattern("aws ssm", r"\baws\s+ssm\b", "aws"),
+    StepPattern("aws kms", r"\baws\s+kms\b", "aws"),
+    StepPattern("aws dynamodb", r"\baws\s+dynamodb\b", "aws"),
+    StepPattern("eksctl", r"\beksctl\b", "aws"),
 ]
 
 STEP_DOMAIN_MAP: Dict[str, str] = {step.label: step.domain for step in STEP_KNOWLEDGE}
@@ -104,7 +124,8 @@ CAUSAL_MAPPING: Dict[str, Dict[str, Set[str]]] = {
             "terraform destroy",
             "terraform import",
             "terraform refresh",
-            "terraform workspace"
+            "terraform workspace",
+            "terraform resource"
         }
     },
     "ANSIBLE_DEFAULT": {
@@ -113,6 +134,30 @@ CAUSAL_MAPPING: Dict[str, Dict[str, Set[str]]] = {
     "GIT_DEFAULT": {
         "origin_steps": {"git clone", "git fetch", "git pull", "git push", "git checkout"}
     },
+    "AWS_DEFAULT": {
+        "origin_steps": {
+            "aws cli",
+            "aws eks",
+            "aws ecs",
+            "aws ecr",
+            "aws iam",
+            "aws sts",
+            "aws s3",
+            "aws ec2",
+            "aws rds",
+            "aws lambda",
+            "aws cloudformation",
+            "aws cloudwatch",
+            "aws logs",
+            "aws autoscaling",
+            "aws secretsmanager",
+            "aws ssm",
+            "aws kms",
+            "aws dynamodb",
+            "eksctl",
+            "terraform resource"
+        }
+    },
 }
 
 CAUSAL_PREFIX_MAP: List[Tuple[str, str]] = [
@@ -120,6 +165,7 @@ CAUSAL_PREFIX_MAP: List[Tuple[str, str]] = [
     ("TERRAFORM_", "TERRAFORM_DEFAULT"),
     ("ANSIBLE_", "ANSIBLE_DEFAULT"),
     ("GIT_", "GIT_DEFAULT"),
+    ("AWS_", "AWS_DEFAULT"),
 ]
 
 ERROR_SIGNATURES: List[ErrorSignature] = [
@@ -317,6 +363,95 @@ ERROR_SIGNATURES: List[ErrorSignature] = [
         domain="terraform"
     ),
     ErrorSignature(
+        name="aws_iam_denied",
+        root_cause="AWS_IAM_DENIED",
+        keywords=[
+            "accessdeniedexception",
+            "access denied",
+            "accessdenied",
+            "unauthorizedoperation",
+            "is not authorized",
+            "not authorized to perform"
+        ],
+        confidence=0.75,
+        domain="aws"
+    ),
+    ErrorSignature(
+        name="aws_auth",
+        root_cause="AWS_AUTH_ERROR",
+        keywords=[
+            "invalidclienttokenid",
+            "expiredtoken",
+            "signaturedoesnotmatch",
+            "missing authentication token",
+            "security token included in the request is expired"
+        ],
+        confidence=0.72,
+        domain="aws"
+    ),
+    ErrorSignature(
+        name="aws_throttling",
+        root_cause="AWS_THROTTLING",
+        keywords=[
+            "throttling",
+            "throttlingexception",
+            "rate exceeded",
+            "request limit exceeded",
+            "too many requests"
+        ],
+        confidence=0.7,
+        domain="aws"
+    ),
+    ErrorSignature(
+        name="aws_quota",
+        root_cause="AWS_QUOTA_EXCEEDED",
+        keywords=[
+            "limitexceeded",
+            "quota exceeded",
+            "resource limit exceeded",
+            "insufficient capacity"
+        ],
+        confidence=0.7,
+        domain="aws"
+    ),
+    ErrorSignature(
+        name="aws_not_found",
+        root_cause="AWS_RESOURCE_NOT_FOUND",
+        keywords=[
+            "resourcenotfoundexception",
+            "resource not found",
+            "no such bucket",
+            "no such key",
+            "the specified key does not exist"
+        ],
+        confidence=0.68,
+        domain="aws"
+    ),
+    ErrorSignature(
+        name="aws_validation",
+        root_cause="AWS_VALIDATION_ERROR",
+        keywords=[
+            "validationexception",
+            "invalidparameter",
+            "parameter validation failed",
+            "invalid parameter"
+        ],
+        confidence=0.68,
+        domain="aws"
+    ),
+    ErrorSignature(
+        name="aws_service_error",
+        root_cause="AWS_SERVICE_ERROR",
+        keywords=[
+            "internalfailure",
+            "service unavailable",
+            "internal error",
+            "request failed"
+        ],
+        confidence=0.6,
+        domain="aws"
+    ),
+    ErrorSignature(
         name="ansible_unreachable",
         root_cause="ANSIBLE_UNREACHABLE",
         keywords=[
@@ -495,6 +630,13 @@ DOMAIN_HINTS: Dict[str, List[str]] = {
         "Task failures indicate module errors or unmet preconditions on the target host.",
         "Syntax errors suggest malformed YAML or invalid Jinja templating."
     ],
+    "aws": [
+        "AccessDenied or Unauthorized errors usually mean IAM policies, roles, or STS credentials are missing.",
+        "Throttling or RateExceeded errors indicate API limits; add retry with backoff or reduce request rate.",
+        "Quota errors often require service quota increases or resource cleanup.",
+        "NotFound errors can mean wrong region, missing resource names, or eventual consistency delays.",
+        "Validation errors usually reflect invalid parameters, missing required fields, or unsupported values."
+    ],
 }
 
 DOMAIN_FALLBACKS: Dict[str, Tuple[str, float]] = {
@@ -504,6 +646,7 @@ DOMAIN_FALLBACKS: Dict[str, Tuple[str, float]] = {
     "git": ("GIT_ERROR", 0.45),
     "container": ("CONTAINER_ERROR", 0.45),
     "package": ("DEPENDENCY_ERROR", 0.45),
+    "aws": ("AWS_ERROR", 0.45),
 }
 
 ROOT_CAUSE_DOMAIN_PREFIXES: List[Tuple[str, str]] = [
@@ -514,6 +657,7 @@ ROOT_CAUSE_DOMAIN_PREFIXES: List[Tuple[str, str]] = [
     ("PROMETHEUS_", "prometheus"),
     ("LOKI_", "loki"),
     ("GRAFANA_", "grafana"),
+    ("AWS_", "aws"),
 ]
 
 

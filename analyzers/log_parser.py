@@ -7,7 +7,9 @@ from analyzers.step_detector import detect_step_start
 STAGE_PATTERN = re.compile(r"\[Pipeline\]\s+stage\s+\((.+?)\)")
 ERROR_PATTERN = re.compile(
     r"(?i)\b(error|failed|exception|fatal|denied|unauthorized|unreachable|timeout|timed out|"
-    r"crashloopbackoff|imagepullbackoff|errimagepull|failedmount)\b"
+    r"crashloopbackoff|imagepullbackoff|errimagepull|failedmount|not authorized|"
+    r"accessdenied|accessdeniedexception|unauthorizedoperation|invalidclienttokenid|"
+    r"expiredtoken|signaturedoesnotmatch|throttling|rate exceeded|limitexceeded)\b"
 )
 
 
