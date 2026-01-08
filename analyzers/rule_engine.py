@@ -18,6 +18,16 @@ def _first_error_match(
     return None
 
 
+def _first_error_in_steps(
+    error_events: Iterable[PipelineEvent],
+    allowed_steps: Set[str]
+) -> Optional[PipelineEvent]:
+    for event in error_events:
+        if event.step_name in allowed_steps:
+            return event
+    return None
+
+
 def _event_origin(event: Optional[PipelineEvent]) -> Optional[str]:
     if not event:
         return None
@@ -58,6 +68,168 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
         return AnalysisResult(
             root_cause="DEPENDENCY_ERROR",
             confidence=0.75,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1b: Kubernetes deployment failures ---
+    kubernetes_keywords = [
+        "crashloopbackoff",
+        "imagepullbackoff",
+        "errimagepull",
+        "failedmount",
+        "mountvolume.setup failed",
+        "failed to pull image",
+        "back-off pulling image",
+        "readiness probe failed",
+        "liveness probe failed",
+        "exceeded its progress deadline",
+        "timed out waiting for the condition",
+        "failed scheduling",
+        "failed to create pod",
+        "pod has unbound immediate persistentvolumeclaims"
+    ]
+    origin_event = _first_error_match(
+        error_events,
+        kubernetes_keywords,
+        allowed_steps={"kubectl apply", "kubectl rollout", "helm upgrade"}
+    )
+    if not origin_event:
+        origin_event = _first_error_match(error_events, kubernetes_keywords)
+    if origin_event:
+        return AnalysisResult(
+            root_cause="KUBERNETES_DEPLOYMENT_ERROR",
+            confidence=0.7,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1c: Terraform failures ---
+    origin_event = _first_error_in_steps(
+        error_events,
+        {"terraform init", "terraform plan", "terraform apply"}
+    )
+    if not origin_event:
+        origin_event = _first_error_match(
+            error_events,
+            [
+                "terraform",
+                "provider produced inconsistent result",
+                "terraform apply failed",
+                "terraform plan failed",
+                "terraform init failed"
+            ]
+        )
+    if origin_event:
+        return AnalysisResult(
+            root_cause="TERRAFORM_ERROR",
+            confidence=0.7,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1d: Ansible failures ---
+    origin_event = _first_error_in_steps(
+        error_events,
+        {"ansible-playbook"}
+    )
+    if not origin_event:
+        origin_event = _first_error_match(
+            error_events,
+            [
+                "ansible",
+                "unreachable!",
+                "failed!",
+                "fatal:"
+            ]
+        )
+    if origin_event:
+        return AnalysisResult(
+            root_cause="ANSIBLE_ERROR",
+            confidence=0.7,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1e: Git failures ---
+    origin_event = _first_error_in_steps(
+        error_events,
+        {"git clone", "git fetch", "git pull", "git push"}
+    )
+    if not origin_event:
+        origin_event = _first_error_match(
+            error_events,
+            [
+                "authentication failed",
+                "repository not found",
+                "could not read from remote repository",
+                "permission denied (publickey)",
+                "fatal: repository"
+            ]
+        )
+    if origin_event:
+        return AnalysisResult(
+            root_cause="GIT_ERROR",
+            confidence=0.65,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1f: Prometheus failures ---
+    prometheus_keywords = [
+        "error scraping",
+        "scrape failed",
+        "scrape error",
+        "remote write",
+        "prometheus"
+    ]
+    origin_event = _first_error_match(error_events, prometheus_keywords)
+    if origin_event:
+        return AnalysisResult(
+            root_cause="PROMETHEUS_SCRAPE_ERROR",
+            confidence=0.6,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1g: Loki failures ---
+    loki_keywords = [
+        "loki",
+        "ingester",
+        "error sending batch",
+        "failed to send batch",
+        "failed to flush",
+        "push request failed"
+    ]
+    origin_event = _first_error_match(error_events, loki_keywords)
+    if origin_event:
+        return AnalysisResult(
+            root_cause="LOKI_INGEST_ERROR",
+            confidence=0.6,
+            evidence=evidence,
+            origin_step=_event_origin(origin_event),
+            failure_surface=failure_surface
+        )
+
+    # --- Rule 1h: Grafana failures ---
+    grafana_keywords = [
+        "grafana",
+        "datasource",
+        "dashboard",
+        "alerting",
+        "failed to provision"
+    ]
+    origin_event = _first_error_match(error_events, grafana_keywords)
+    if origin_event:
+        return AnalysisResult(
+            root_cause="GRAFANA_ERROR",
+            confidence=0.6,
             evidence=evidence,
             origin_step=_event_origin(origin_event),
             failure_surface=failure_surface
