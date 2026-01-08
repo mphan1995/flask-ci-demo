@@ -5,7 +5,10 @@ from analyzers.step_detector import detect_step_start
 
 
 STAGE_PATTERN = re.compile(r"\[Pipeline\]\s+stage\s+\((.+?)\)")
-ERROR_PATTERN = re.compile(r"(?i)\b(error|failed|exception)\b")
+ERROR_PATTERN = re.compile(
+    r"(?i)\b(error|failed|exception|fatal|denied|unauthorized|unreachable|timeout|timed out|"
+    r"crashloopbackoff|imagepullbackoff|errimagepull|failedmount)\b"
+)
 
 
 def parse_jenkins_log(

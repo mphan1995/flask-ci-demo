@@ -44,7 +44,13 @@ def summarize_timeline(events: List[PipelineEvent]) -> List[str]:
     """
     timeline = []
     for e in events:
-        step = f" | {e.step_name}" if e.step_name else ""
-        prefix = f"[{e.stage_name or 'UNKNOWN'}{step}]"
+        if e.stage_name and e.step_name:
+            prefix = f"[{e.stage_name} | {e.step_name}]"
+        elif e.stage_name:
+            prefix = f"[{e.stage_name}]"
+        elif e.step_name:
+            prefix = f"[{e.step_name}]"
+        else:
+            prefix = "[UNKNOWN]"
         timeline.append(f"{prefix} {e.log_level}: {e.message}")
     return timeline

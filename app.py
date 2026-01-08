@@ -59,6 +59,8 @@ def analyze_log_text(
         if e.log_level == "ERROR" and e.stage_name:
             last_error_stage = e.stage_name
             break
+    if not last_error_stage:
+        last_error_stage = result.failure_surface or result.origin_step
 
     context_events = build_evidence_window(events)
     timeline = summarize_timeline(context_events)
