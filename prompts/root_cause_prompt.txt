@@ -14,6 +14,8 @@ Your tasks:
 - Explain the most likely underlying cause in clear technical and system-level terms.
 - Distinguish between symptoms and root causes when applicable.
 - Clearly separate root cause origin vs failure surface.
+- Treat root cause origin as the first ERROR that matches the category within a valid step.
+- Treat failure surface as the last ERROR in the pipeline where the failure surfaced.
 - Offer a short, non-authoritative AI hypothesis about the root cause (if helpful).
 - Propose 3-6 concrete remediation options, ordered by impact and risk
   (from least risky / quickest validation to more structural fixes).
