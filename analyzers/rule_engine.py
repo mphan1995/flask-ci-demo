@@ -1,6 +1,13 @@
 from typing import Iterable, List, Optional, Set
 from models.pipeline_event import PipelineEvent
 from models.analysis_result import AnalysisResult
+from analyzers.knowledge_base import (
+    CAUSAL_MAPPING,
+    CAUSAL_PREFIX_MAP,
+    DOMAIN_FALLBACKS,
+    ERROR_SIGNATURES,
+    STEP_DOMAIN_MAP
+)
 
 
 def _first_error_match(
@@ -18,16 +25,6 @@ def _first_error_match(
     return None
 
 
-def _first_error_in_steps(
-    error_events: Iterable[PipelineEvent],
-    allowed_steps: Set[str]
-) -> Optional[PipelineEvent]:
-    for event in error_events:
-        if event.step_name in allowed_steps:
-            return event
-    return None
-
-
 def _event_origin(event: Optional[PipelineEvent]) -> Optional[str]:
     if not event:
         return None
@@ -38,6 +35,37 @@ def _event_surface(event: Optional[PipelineEvent]) -> Optional[str]:
     if not event:
         return None
     return event.step_name or event.stage_name
+
+
+def _allowed_steps_for(root_cause: str, explicit_steps: Optional[Set[str]]) -> Optional[Set[str]]:
+    if explicit_steps:
+        return explicit_steps
+
+    mapping = CAUSAL_MAPPING.get(root_cause)
+    if mapping and mapping.get("origin_steps"):
+        return mapping["origin_steps"]
+
+    for prefix, mapping_key in CAUSAL_PREFIX_MAP:
+        if root_cause.startswith(prefix):
+            return CAUSAL_MAPPING.get(mapping_key, {}).get("origin_steps")
+
+    return None
+
+
+def _event_domain(event: Optional[PipelineEvent]) -> Optional[str]:
+    if not event or not event.step_name:
+        return None
+    return STEP_DOMAIN_MAP.get(event.step_name)
+
+
+def _first_error_with_domain(
+    error_events: Iterable[PipelineEvent],
+    domain: str
+) -> Optional[PipelineEvent]:
+    for event in error_events:
+        if _event_domain(event) == domain:
+            return event
+    return None
 
 
 def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
@@ -52,231 +80,32 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
     last_error_event = error_events[-1] if error_events else None
     failure_surface = _event_surface(last_error_event)
 
-    # --- Rule 1: Dependency issues ---
-    dependency_keywords = [
-        "could not find a version",
-        "dependency",
-        "requirements.txt",
-        "no matching distribution"
-    ]
-    origin_event = _first_error_match(
-        error_events,
-        dependency_keywords,
-        allowed_steps={"pip install"}
-    )
-    if origin_event:
-        return AnalysisResult(
-            root_cause="DEPENDENCY_ERROR",
-            confidence=0.75,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 1b: Kubernetes deployment failures ---
-    kubernetes_keywords = [
-        "crashloopbackoff",
-        "imagepullbackoff",
-        "errimagepull",
-        "failedmount",
-        "mountvolume.setup failed",
-        "failed to pull image",
-        "back-off pulling image",
-        "readiness probe failed",
-        "liveness probe failed",
-        "exceeded its progress deadline",
-        "timed out waiting for the condition",
-        "failed scheduling",
-        "failed to create pod",
-        "pod has unbound immediate persistentvolumeclaims"
-    ]
-    origin_event = _first_error_match(
-        error_events,
-        kubernetes_keywords,
-        allowed_steps={"kubectl apply", "kubectl rollout", "helm upgrade"}
-    )
-    if not origin_event:
-        origin_event = _first_error_match(error_events, kubernetes_keywords)
-    if origin_event:
-        return AnalysisResult(
-            root_cause="KUBERNETES_DEPLOYMENT_ERROR",
-            confidence=0.7,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 1c: Terraform failures ---
-    origin_event = _first_error_in_steps(
-        error_events,
-        {"terraform init", "terraform plan", "terraform apply"}
-    )
-    if not origin_event:
+    for signature in ERROR_SIGNATURES:
+        allowed_steps = _allowed_steps_for(signature.root_cause, signature.allowed_steps)
         origin_event = _first_error_match(
             error_events,
-            [
-                "terraform",
-                "provider produced inconsistent result",
-                "terraform apply failed",
-                "terraform plan failed",
-                "terraform init failed"
-            ]
+            signature.keywords,
+            allowed_steps=allowed_steps
         )
-    if origin_event:
-        return AnalysisResult(
-            root_cause="TERRAFORM_ERROR",
-            confidence=0.7,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
+        if origin_event:
+            return AnalysisResult(
+                root_cause=signature.root_cause,
+                confidence=signature.confidence,
+                evidence=evidence,
+                origin_step=_event_origin(origin_event),
+                failure_surface=failure_surface
+            )
 
-    # --- Rule 1d: Ansible failures ---
-    origin_event = _first_error_in_steps(
-        error_events,
-        {"ansible-playbook"}
-    )
-    if not origin_event:
-        origin_event = _first_error_match(
-            error_events,
-            [
-                "ansible",
-                "unreachable!",
-                "failed!",
-                "fatal:"
-            ]
-        )
-    if origin_event:
-        return AnalysisResult(
-            root_cause="ANSIBLE_ERROR",
-            confidence=0.7,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 1e: Git failures ---
-    origin_event = _first_error_in_steps(
-        error_events,
-        {"git clone", "git fetch", "git pull", "git push"}
-    )
-    if not origin_event:
-        origin_event = _first_error_match(
-            error_events,
-            [
-                "authentication failed",
-                "repository not found",
-                "could not read from remote repository",
-                "permission denied (publickey)",
-                "fatal: repository"
-            ]
-        )
-    if origin_event:
-        return AnalysisResult(
-            root_cause="GIT_ERROR",
-            confidence=0.65,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 1f: Prometheus failures ---
-    prometheus_keywords = [
-        "error scraping",
-        "scrape failed",
-        "scrape error",
-        "remote write",
-        "prometheus"
-    ]
-    origin_event = _first_error_match(error_events, prometheus_keywords)
-    if origin_event:
-        return AnalysisResult(
-            root_cause="PROMETHEUS_SCRAPE_ERROR",
-            confidence=0.6,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 1g: Loki failures ---
-    loki_keywords = [
-        "loki",
-        "ingester",
-        "error sending batch",
-        "failed to send batch",
-        "failed to flush",
-        "push request failed"
-    ]
-    origin_event = _first_error_match(error_events, loki_keywords)
-    if origin_event:
-        return AnalysisResult(
-            root_cause="LOKI_INGEST_ERROR",
-            confidence=0.6,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 1h: Grafana failures ---
-    grafana_keywords = [
-        "grafana",
-        "datasource",
-        "dashboard",
-        "alerting",
-        "failed to provision"
-    ]
-    origin_event = _first_error_match(error_events, grafana_keywords)
-    if origin_event:
-        return AnalysisResult(
-            root_cause="GRAFANA_ERROR",
-            confidence=0.6,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 2: Permission / IAM ---
-    permission_keywords = [
-        "permission denied",
-        "access denied",
-        "unauthorized"
-    ]
-    origin_event = _first_error_match(error_events, permission_keywords)
-    if origin_event:
-        return AnalysisResult(
-            root_cause="PERMISSION_ERROR",
-            confidence=0.8,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 3: Network ---
-    network_keywords = [
-        "timeout",
-        "connection refused",
-        "network is unreachable"
-    ]
-    origin_event = _first_error_match(error_events, network_keywords)
-    if origin_event:
-        return AnalysisResult(
-            root_cause="NETWORK_ERROR",
-            confidence=0.7,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
-
-    # --- Rule 4: Script / command ---
-    origin_event = _first_error_match(error_events, ["command not found"])
-    if origin_event:
-        return AnalysisResult(
-            root_cause="SCRIPT_ERROR",
-            confidence=0.6,
-            evidence=evidence,
-            origin_step=_event_origin(origin_event),
-            failure_surface=failure_surface
-        )
+    for domain, (root_cause, confidence) in DOMAIN_FALLBACKS.items():
+        origin_event = _first_error_with_domain(error_events, domain)
+        if origin_event:
+            return AnalysisResult(
+                root_cause=root_cause,
+                confidence=confidence,
+                evidence=evidence,
+                origin_step=_event_origin(origin_event),
+                failure_surface=failure_surface
+            )
 
     # --- Rule 5: Build config ---
     if any("build" in e.stage_name.lower() for e in error_events if e.stage_name):

@@ -7,6 +7,7 @@ from typing import List, Optional
 import urllib.error
 import urllib.request
 
+from analyzers.knowledge_base import DOMAIN_HINTS, infer_domain
 
 @dataclass
 class AIExplainRequest:
@@ -44,6 +45,14 @@ def build_prompt(req: AIExplainRequest) -> str:
             [f"- {line}" for line in req.timeline[:40]]
         )
 
+    domain = infer_domain(req.root_cause, req.origin_step, req.failure_surface)
+    domain_hints = DOMAIN_HINTS.get(domain or "", [])
+    domain_block = ""
+    if domain_hints:
+        domain_block = "\nDomain hints:\n" + "\n".join(
+            [f"- {hint}" for hint in domain_hints]
+        )
+
     context = f"""
 Pipeline: {req.pipeline_name}
 Build ID: {req.build_id}
@@ -57,6 +66,7 @@ Rule confidence: {req.confidence}
 Key evidence:
 {evidence_block}
 {timeline_block}
+{domain_block}
 """.strip()
 
     return f"{template}\n\n---\n\n{context}\n"

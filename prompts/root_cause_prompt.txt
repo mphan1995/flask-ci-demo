@@ -9,6 +9,7 @@ Context provided:
 3) Pipeline context (pipeline name, build id, stage)
 4) Root cause origin step (command or step label)
 5) Failure surface (where the failure surfaced)
+6) Domain hints (if provided)
 
 Your tasks:
 - Explain the most likely underlying cause in clear technical and system-level terms.
@@ -16,6 +17,7 @@ Your tasks:
 - Clearly separate root cause origin vs failure surface.
 - Treat root cause origin as the first ERROR that matches the category within a valid step.
 - Treat failure surface as the last ERROR in the pipeline where the failure surfaced.
+- Use domain hints to explain likely system-level causes without over-speculating.
 - Offer a short, non-authoritative AI hypothesis about the root cause (if helpful).
 - Propose 3-6 concrete remediation options, ordered by impact and risk
   (from least risky / quickest validation to more structural fixes).

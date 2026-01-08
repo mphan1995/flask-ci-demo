@@ -2,6 +2,9 @@ from dataclasses import dataclass
 import re
 from typing import Optional
 
+from analyzers.knowledge_base import STEP_KNOWLEDGE
+
+
 @dataclass
 class StepMatch:
     label: str
@@ -9,19 +12,8 @@ class StepMatch:
 
 
 STEP_PATTERNS = [
-    ("pip install", re.compile(r"\b(?:python\s+-m\s+)?pip\s+install\b", re.IGNORECASE)),
-    ("docker build", re.compile(r"\bdocker\s+(?:buildx\s+build|build)\b", re.IGNORECASE)),
-    ("helm upgrade", re.compile(r"\bhelm\s+upgrade\b", re.IGNORECASE)),
-    ("kubectl apply", re.compile(r"\bkubectl\s+apply\b", re.IGNORECASE)),
-    ("kubectl rollout", re.compile(r"\bkubectl\s+rollout\s+status\b", re.IGNORECASE)),
-    ("terraform init", re.compile(r"\bterraform\s+init\b", re.IGNORECASE)),
-    ("terraform plan", re.compile(r"\bterraform\s+plan\b", re.IGNORECASE)),
-    ("terraform apply", re.compile(r"\bterraform\s+apply\b", re.IGNORECASE)),
-    ("ansible-playbook", re.compile(r"\bansible-playbook\b", re.IGNORECASE)),
-    ("git clone", re.compile(r"\bgit\s+clone\b", re.IGNORECASE)),
-    ("git fetch", re.compile(r"\bgit\s+fetch\b", re.IGNORECASE)),
-    ("git pull", re.compile(r"\bgit\s+pull\b", re.IGNORECASE)),
-    ("git push", re.compile(r"\bgit\s+push\b", re.IGNORECASE)),
+    (step.label, re.compile(step.pattern, re.IGNORECASE))
+    for step in STEP_KNOWLEDGE
 ]
 
 
