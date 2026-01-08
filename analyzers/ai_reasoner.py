@@ -13,6 +13,8 @@ class AIExplainRequest:
     pipeline_name: str
     build_id: str
     stage_name: Optional[str]
+    origin_step: Optional[str]
+    failure_surface: Optional[str]
     root_cause: str
     confidence: float
     evidence: List[str]
@@ -29,6 +31,8 @@ def build_prompt(req: AIExplainRequest) -> str:
     template = _load_prompt_template()
 
     stage = req.stage_name or "UNKNOWN"
+    origin_step = req.origin_step or "UNKNOWN"
+    failure_surface = req.failure_surface or stage
 
     evidence_block = "\n".join(
         [f"- `{line}`" for line in req.evidence[:15]]
@@ -44,6 +48,8 @@ def build_prompt(req: AIExplainRequest) -> str:
 Pipeline: {req.pipeline_name}
 Build ID: {req.build_id}
 Stage: {stage}
+Root cause origin: {origin_step}
+Failure surface: {failure_surface}
 
 Rule-based root cause: {req.root_cause}
 Rule confidence: {req.confidence}
@@ -130,12 +136,20 @@ def explain_with_ai(
     if provider == "mock":
         # Deterministic mock to keep dev moving
         evidence_md = "\n".join([f"- `{x}`" for x in req.evidence[:10]]) or "- (none)"
+        origin_step = req.origin_step or "UNKNOWN"
+        failure_surface = req.failure_surface or (req.stage_name or "UNKNOWN")
         return f"""## Executive summary
 Pipeline **{req.pipeline_name}** (build **{req.build_id}**) failed at stage **{req.stage_name or "UNKNOWN"}**.
 Rule-based classification indicates **{req.root_cause}** (confidence {req.confidence}).
 
 ## Rule-based root cause
 **{req.root_cause}**
+
+## Root cause origin
+**{origin_step}**
+
+## Failure surface
+**{failure_surface}**
 
 ## AI hypothesis (non-authoritative)
 Based on the current evidence, the most likely failure mode aligns with **{req.root_cause}**,

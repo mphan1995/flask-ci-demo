@@ -7,10 +7,13 @@ Context provided:
 1) A rule-based root cause category (authoritative, must NOT be changed)
 2) Raw evidence log lines
 3) Pipeline context (pipeline name, build id, stage)
+4) Root cause origin step (command or step label)
+5) Failure surface (where the failure surfaced)
 
 Your tasks:
 - Explain the most likely underlying cause in clear technical and system-level terms.
 - Distinguish between symptoms and root causes when applicable.
+- Clearly separate root cause origin vs failure surface.
 - Offer a short, non-authoritative AI hypothesis about the root cause (if helpful).
 - Propose 3-6 concrete remediation options, ordered by impact and risk
   (from least risky / quickest validation to more structural fixes).
@@ -31,6 +34,8 @@ Output requirements:
 
 ## Executive summary
 ## Rule-based root cause
+## Root cause origin
+## Failure surface
 ## AI hypothesis (non-authoritative)
 ## Key evidence
 ## Remediation options

@@ -12,6 +12,8 @@ const fileInput = document.querySelector("#log-file");
 const resultPanel = document.querySelector("#result-panel");
 const rootCauseEl = document.querySelector("#result-root-cause");
 const stageEl = document.querySelector("#result-stage");
+const originStepEl = document.querySelector("#result-origin-step");
+const failureSurfaceEl = document.querySelector("#result-failure-surface");
 const eventsEl = document.querySelector("#result-events");
 const confidenceEl = document.querySelector("#result-confidence");
 const confidenceBar = document.querySelector("#confidence-bar");
@@ -55,6 +57,8 @@ const updateStats = () => {
 const renderResult = (data) => {
   rootCauseEl.textContent = data.root_cause || "UNKNOWN";
   stageEl.textContent = data.stage_name || "UNKNOWN";
+  originStepEl.textContent = data.origin_step || "UNKNOWN";
+  failureSurfaceEl.textContent = data.failure_surface || "UNKNOWN";
   eventsEl.textContent = data.event_count || 0;
 
   const confidencePct = Math.round((data.confidence || 0) * 100);

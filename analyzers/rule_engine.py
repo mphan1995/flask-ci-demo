@@ -10,9 +10,17 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
     """
 
     error_events = [e for e in events if e.log_level == "ERROR"]
-    info_events = [e for e in events if e.log_level == "INFO"]
 
     evidence = [e.raw_line for e in error_events[-5:]]  # last errors
+    last_error_event = next(
+        (e for e in reversed(error_events) if e.log_level == "ERROR"),
+        None
+    )
+    origin_step = None
+    failure_surface = None
+    if last_error_event:
+        origin_step = last_error_event.origin_step or last_error_event.step_name
+        failure_surface = last_error_event.stage_name
 
     # --- Rule 1: Dependency issues ---
     for e in error_events:
@@ -25,7 +33,9 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
             return AnalysisResult(
                 root_cause="DEPENDENCY_ERROR",
                 confidence=0.75,
-                evidence=evidence
+                evidence=evidence,
+                origin_step=origin_step,
+                failure_surface=failure_surface
             )
 
     # --- Rule 2: Permission / IAM ---
@@ -38,7 +48,9 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
             return AnalysisResult(
                 root_cause="PERMISSION_ERROR",
                 confidence=0.8,
-                evidence=evidence
+                evidence=evidence,
+                origin_step=origin_step,
+                failure_surface=failure_surface
             )
 
     # --- Rule 3: Network ---
@@ -51,7 +63,9 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
             return AnalysisResult(
                 root_cause="NETWORK_ERROR",
                 confidence=0.7,
-                evidence=evidence
+                evidence=evidence,
+                origin_step=origin_step,
+                failure_surface=failure_surface
             )
 
     # --- Rule 4: Script / command ---
@@ -60,7 +74,9 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
             return AnalysisResult(
                 root_cause="SCRIPT_ERROR",
                 confidence=0.6,
-                evidence=evidence
+                evidence=evidence,
+                origin_step=origin_step,
+                failure_surface=failure_surface
             )
 
     # --- Rule 5: Build config ---
@@ -68,11 +84,15 @@ def analyze_events(events: List[PipelineEvent]) -> AnalysisResult:
         return AnalysisResult(
             root_cause="BUILD_CONFIG_ERROR",
             confidence=0.5,
-            evidence=evidence
+            evidence=evidence,
+            origin_step=origin_step,
+            failure_surface=failure_surface
         )
 
     return AnalysisResult(
         root_cause="UNKNOWN",
         confidence=0.3,
-        evidence=evidence
+        evidence=evidence,
+        origin_step=origin_step,
+        failure_surface=failure_surface
     )

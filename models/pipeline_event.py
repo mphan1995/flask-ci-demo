@@ -16,6 +16,7 @@ class PipelineEvent:
     # Context
     stage_name: Optional[str]
     step_name: Optional[str]
+    origin_step: Optional[str]
 
     # Log details
     timestamp: Optional[str]

@@ -12,7 +12,7 @@ from analyzers.rule_engine import analyze_events
 from analyzers.ai_reasoner import AIExplainRequest, explain_with_ai
 from analyzers.context_builder import build_evidence_window, summarize_timeline
 
-APP_DISPLAY_NAME = "AI-DEVOPS-ASSIST"
+APP_DISPLAY_NAME = "DevOps AI By MaX Phan"
 BASE_DIR = Path(__file__).resolve().parent
 SAMPLE_LOG_PATH = BASE_DIR / "data" / "sample_logs" / "jenkins_fail.log"
 
@@ -67,6 +67,8 @@ def analyze_log_text(
         pipeline_name=pipeline_name,
         build_id=build_id,
         stage_name=last_error_stage,
+        origin_step=result.origin_step,
+        failure_surface=result.failure_surface,
         root_cause=result.root_cause,
         confidence=result.confidence,
         evidence=result.evidence,
@@ -82,6 +84,8 @@ def analyze_log_text(
         "root_cause": result.root_cause,
         "confidence": result.confidence,
         "evidence": result.evidence,
+        "origin_step": result.origin_step,
+        "failure_surface": result.failure_surface,
         "timeline": timeline,
         "report_markdown": md,
         "event_count": len(events)
