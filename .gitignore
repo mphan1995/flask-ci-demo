@@ -1,0 +1,93 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# =========================
+# Flask / Runtime
+# =========================
+instance/
+.webassets-cache
+*.log
+*.sqlite3
+
+# =========================
+# Windows / OS
+# =========================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================
+# VS Code / IDE
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.pfx
+
+# =========================
+# Runtime / Generated data
+# =========================
+logs/
+tmp/
+temp/
+cache/
+output/
+
+# Application runtime data
+data/backup/
+data/logs/
+
+# =========================
+# Windows system / Registry dump
+# =========================
+HKCU/
+HKLM/
+
+# =========================
+# Archives
+# =========================
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# =========================
+# Misc
+# =========================
+.DS_Store
+*.swp

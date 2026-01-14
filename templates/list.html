@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Service Ledger</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="fx-grid"></div>
+  <div class="fx-glow"></div>
+  <div class="fx-swoosh"></div>
+
+  <header class="hero">
+    <div class="hero-left">
+      <span class="tag">MAX ENGINE / WIN11</span>
+      <h1>Service Ledger</h1>
+      <p class="subtitle">Full registry and SCM service inventory with live status.</p>
+      <div class="page-links">
+        <a class="page-link" href="/">Dashboard</a>
+        <a class="page-link active" href="/list">Service list</a>
+        <a class="page-link" href="/check">Local check</a>
+        <a class="page-link" href="/processes">Resource monitor</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="signal-bars" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Total Services</span>
+          <span id="stat-total" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Running</span>
+          <span id="stat-running" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Disabled</span>
+          <span id="stat-disabled" class="stat-value">-</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card">
+        <div class="card-head">
+          <h2>Service summary</h2>
+          <span class="muted">Auto-refresh from registry scan.</span>
+        </div>
+        <div id="service-summary" class="kv muted">No data yet.</div>
+        <div class="actions">
+          <button id="list-refresh" class="btn primary">Refresh list</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Disabled services</h2>
+          <span class="muted">Start mode disabled.</span>
+        </div>
+        <div id="disabled-list" class="list compact-list muted">No data.</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Running services</h2>
+          <span class="muted">Currently running.</span>
+        </div>
+        <div id="running-list" class="list compact-list muted">No data.</div>
+      </div>
+    </section>
+
+    <section class="grid grid-wide">
+      <div class="card card-wide">
+        <div class="card-head">
+          <div>
+            <h2>Service ledger</h2>
+            <span class="muted">Filter and search across all services.</span>
+          </div>
+          <div class="table-tools">
+            <input id="service-search" class="input input-sm" placeholder="Search name or display" />
+            <div class="chip-group">
+              <button class="chip-filter active" data-filter="all">All</button>
+              <button class="chip-filter" data-filter="running">Running</button>
+              <button class="chip-filter" data-filter="stopped">Stopped</button>
+              <button class="chip-filter" data-filter="disabled">Disabled</button>
+              <button class="chip-filter" data-filter="unknown">Unknown</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>State</th>
+                <th>Start mode</th>
+                <th>Start value</th>
+                <th>Risk</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="services-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="{{ url_for('static', filename='list.js') }}"></script>
+</body>
+</html>

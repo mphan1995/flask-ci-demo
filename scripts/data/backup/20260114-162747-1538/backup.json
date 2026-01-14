@@ -1,0 +1,38 @@
+﻿{
+    "id":  "20260114-162747-1538",
+    "created_at":  "2026-01-14T16:27:47.1203644+07:00",
+    "rules":  [
+                  "disable_copilot_entrypoints",
+                  "disable_bing_search_suggestions",
+                  "disable_bing_search_in_start"
+              ],
+    "services":  [
+
+                 ],
+    "tasks":  [
+
+              ],
+    "registry":  [
+                     {
+                         "kind":  null,
+                         "path":  "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+                         "name":  "TurnOffWindowsCopilot",
+                         "value":  null,
+                         "exists":  false
+                     },
+                     {
+                         "kind":  null,
+                         "path":  "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+                         "name":  "DisableSearchBoxSuggestions",
+                         "value":  null,
+                         "exists":  false
+                     },
+                     {
+                         "kind":  null,
+                         "path":  "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+                         "name":  "BingSearchEnabled",
+                         "value":  null,
+                         "exists":  false
+                     }
+                 ]
+}

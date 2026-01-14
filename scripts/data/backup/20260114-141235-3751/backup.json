@@ -1,0 +1,65 @@
+﻿{
+    "id":  "20260114-141235-3751",
+    "created_at":  "2026-01-14T14:12:48.8084420+07:00",
+    "rules":  [
+                  "disable_copilot_entrypoints",
+                  "disable_bing_search_suggestions",
+                  "disable_bing_search_in_start",
+                  "disable_widgets_policy",
+                  "disable_widgets_taskbar",
+                  "disable_consumer_experiences",
+                  "reduce_telemetry_basic",
+                  "disable_diagtrack_service",
+                  "disable_ceip_tasks",
+                  "disable_application_experience_tasks",
+                  "disable_xbox_services",
+                  "limit_background_apps"
+              ],
+    "services":  [
+                     {
+                         "status":  "Running",
+                         "name":  "DiagTrack",
+                         "startType":  "Auto"
+                     },
+                     {
+                         "status":  "Stopped",
+                         "name":  "XblGameSave",
+                         "startType":  "Manual"
+                     },
+                     {
+                         "status":  "Stopped",
+                         "name":  "XboxGipSvc",
+                         "startType":  "Manual"
+                     },
+                     {
+                         "status":  "Stopped",
+                         "name":  "XboxNetApiSvc",
+                         "startType":  "Manual"
+                     }
+                 ],
+    "tasks":  [
+                  {
+                      "path":  "\\Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator",
+                      "enabled":  true
+                  },
+                  {
+                      "notFound":  true,
+                      "path":  "\\Microsoft\\Windows\\Customer Experience Improvement Program\\KernelCeipTask"
+                  },
+                  {
+                      "path":  "\\Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip",
+                      "enabled":  true
+                  },
+                  {
+                      "notFound":  true,
+                      "path":  "\\Microsoft\\Windows\\Application Experience\\ProgramDataUpdater"
+                  },
+                  {
+                      "path":  "\\Microsoft\\Windows\\Application Experience\\StartupAppTask",
+                      "enabled":  true
+                  }
+              ],
+    "registry":  [
+
+                 ]
+}

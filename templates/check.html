@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local Service Check</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="fx-grid"></div>
+  <div class="fx-glow"></div>
+  <div class="fx-swoosh"></div>
+
+  <header class="hero">
+    <div class="hero-left">
+      <span class="tag">MAX ENGINE / WIN11</span>
+      <h1>Local Service Check</h1>
+      <p class="subtitle">Verify live service state, registry start values, and rule compliance.</p>
+      <div class="chip-row">
+        <span id="admin-status" class="chip">Admin: Unknown</span>
+        <span id="health-status" class="chip">Status: Idle</span>
+      </div>
+      <div class="page-links">
+        <a class="page-link" href="/">Dashboard</a>
+        <a class="page-link" href="/list">Service list</a>
+        <a class="page-link active" href="/check">Local check</a>
+        <a class="page-link" href="/processes">Resource monitor</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="signal-bars" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Targeted Services</span>
+          <span id="stat-targeted" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Disabled Targeted</span>
+          <span id="stat-disabled" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Rules Loaded</span>
+          <span id="stat-rules" class="stat-value">-</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card">
+        <div class="card-head">
+          <h2>Verification deck</h2>
+          <span class="muted">Direct snapshot from SCM + registry.</span>
+        </div>
+        <div class="actions">
+          <button id="check-refresh" class="btn primary">Refresh check</button>
+          <button id="check-rules" class="btn ghost">Reload rules</button>
+        </div>
+        <div id="check-progress" class="progress hidden">Idle.</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Service integrity</h2>
+          <span class="muted">Targeted services only.</span>
+        </div>
+        <div id="service-integrity" class="kv muted">No data yet.</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Rule integrity</h2>
+          <span class="muted">Live rules status.</span>
+        </div>
+        <div id="rule-integrity" class="kv muted">No data yet.</div>
+      </div>
+    </section>
+
+    <section class="grid grid-wide">
+      <div class="card card-wide">
+        <div class="card-head">
+          <div>
+            <h2>Targeted services check</h2>
+            <span class="muted">Shows services mentioned by rules.</span>
+          </div>
+          <div class="table-tools">
+            <input id="check-service-search" class="input input-sm" placeholder="Search targeted services" />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Status</th>
+                <th>State</th>
+                <th>Start mode</th>
+                <th>Start value</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="check-service-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-wide">
+      <div class="card card-wide">
+        <div class="card-head">
+          <div>
+            <h2>Rules verification</h2>
+            <span class="muted">Same logic as the scan engine.</span>
+          </div>
+          <div class="table-tools">
+            <input id="check-rule-search" class="input input-sm" placeholder="Search rules" />
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Risk</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="check-rule-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="{{ url_for('static', filename='check.js') }}"></script>
+</body>
+</html>

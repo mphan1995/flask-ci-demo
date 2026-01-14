@@ -1,0 +1,16 @@
+﻿{
+    "id":  "20260114-144214-4383",
+    "created_at":  "2026-01-14T14:42:15.1551765+07:00",
+    "rules":  [
+                  "disable_copilot_entrypoints"
+              ],
+    "services":  [
+
+                 ],
+    "tasks":  [
+
+              ],
+    "registry":  [
+
+                 ]
+}

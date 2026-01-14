@@ -1,0 +1,18 @@
+﻿{
+    "id":  "20260114-143000-2327",
+    "created_at":  "2026-01-14T14:30:00.4633874+07:00",
+    "rules":  [
+                  "disable_widgets_taskbar",
+                  "disable_consumer_experiences",
+                  "reduce_telemetry_basic"
+              ],
+    "services":  [
+
+                 ],
+    "tasks":  [
+
+              ],
+    "registry":  [
+
+                 ]
+}

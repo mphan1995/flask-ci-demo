@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Max Engine Control Performance Control Plane</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="fx-grid"></div>
+  <div class="fx-glow"></div>
+  <div class="fx-swoosh"></div>
+
+  <header class="hero">
+    <div class="hero-left">
+      <span class="tag">MAX PHAN | ENGINE</span>
+      <h1>Performance Control Plane | Windows OS</h1>
+      <p class="subtitle">Scan, plan, and apply safe optimizations with full rollback for Windows 11.</p>
+      <div class="chip-row">
+        <span id="admin-status" class="chip">Admin: Unknown</span>
+        <span id="health-status" class="chip">Status: Idle</span>
+      </div>
+      <div class="page-links">
+        <a class="page-link active" href="/">Dashboard</a>
+        <a class="page-link" href="/list">Service list</a>
+        <a class="page-link" href="/check">Local check</a>
+        <a class="page-link" href="/processes">Resource monitor</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="signal-bars" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Running Services</span>
+          <span id="stat-running" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Services</span>
+          <span id="stat-total" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Rules Loaded</span>
+          <span id="stat-rules" class="stat-value">-</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="scan">Scan</button>
+    <button class="tab-btn" data-tab="recommended">Recommended</button>
+    <button class="tab-btn" data-tab="advanced">Advanced</button>
+    <button class="tab-btn" data-tab="history">History / Rollback</button>
+    <button class="tab-btn" data-tab="logs">Logs</button>
+  </nav>
+
+  <main>
+    <section id="tab-scan" class="tab active">
+      <div class="grid">
+        <div class="card">
+          <div class="card-head">
+            <h2>Command Deck</h2>
+            <span class="muted">Scan first to unlock actions.</span>
+          </div>
+          <p class="muted">Read-only scan by default. No changes applied.</p>
+          <div class="actions">
+            <button id="scan-btn" class="btn primary">Scan system</button>
+            <button id="dryrun-btn" class="btn ghost" disabled>Dry-run plan</button>
+            <button id="apply-btn" class="btn danger" disabled>Disable selected</button>
+            <button id="enable-btn" class="btn success" disabled>Enable selected</button>
+          </div>
+          <div id="admin-warning" class="alert hidden">
+            Admin privileges required for Apply/Rollback. Run the app as Administrator.
+          </div>
+          <div id="scan-progress" class="progress hidden"></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>System identity</h2>
+            <span class="muted">Snapshot after scan.</span>
+          </div>
+          <div id="system-info" class="kv muted">No scan yet.</div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Plan summary</h2>
+            <span class="muted">Dry-run output.</span>
+          </div>
+          <div id="plan-summary" class="kv muted">No plan yet.</div>
+        </div>
+      </div>
+
+      <div class="grid grid-wide">
+        <div class="card card-wide">
+          <div class="card-head">
+            <div>
+              <h2>Rules arsenal</h2>
+              <span id="rules-hint" class="muted">Scan to enable rule selection.</span>
+            </div>
+            <div class="table-tools">
+              <input id="rules-search" class="input input-sm" placeholder="Search rules" />
+              <button id="rules-select-all" class="btn ghost btn-sm" type="button">Select all</button>
+              <button id="rules-clear" class="btn ghost btn-sm" type="button">Clear</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Select</th>
+                  <th>Title</th>
+                  <th>Risk</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="rules-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Service pulse</h2>
+              <span class="muted">Running services detected on scan.</span>
+            </div>
+            <input id="services-filter" class="input input-sm" placeholder="Filter services" />
+          </div>
+          <div id="services-summary" class="kv muted">Scan to load services.</div>
+          <div id="services-list" class="service-list muted">No data.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-recommended" class="tab">
+      <div class="card">
+        <div class="card-head">
+          <h2>Recommended (Low risk)</h2>
+          <span class="muted">Safe picks for most systems.</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Select</th>
+                <th>Title</th>
+                <th>Risk</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="recommended-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-advanced" class="tab">
+      <div class="card">
+        <div class="card-head">
+          <h2>Advanced (Medium / High risk)</h2>
+          <span class="muted">Use with caution.</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Select</th>
+                <th>Title</th>
+                <th>Risk</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="advanced-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-history" class="tab">
+      <div class="grid">
+        <div class="card">
+          <div class="card-head">
+            <h2>Backups</h2>
+            <span class="muted">Restore points from Apply.</span>
+          </div>
+          <div id="backup-list" class="list muted">No backups yet.</div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Rollback</h2>
+            <span class="muted">Requires Administrator.</span>
+          </div>
+          <div class="actions">
+            <input id="rollback-id" class="input" placeholder="Backup ID" />
+            <button id="rollback-btn" class="btn danger">Rollback</button>
+          </div>
+          <p class="muted">Rollback restores registry, tasks, and services from backup.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-logs" class="tab">
+      <div class="grid">
+        <div class="card">
+          <div class="card-head">
+            <h2>Logs</h2>
+            <span class="muted">Every scan/apply/rollback.</span>
+          </div>
+          <div id="logs-list" class="list muted">No logs yet.</div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h2>Log detail</h2>
+            <span class="muted">Inspect JSON and text output.</span>
+          </div>
+          <pre id="log-detail" class="log-viewer">Select a log to view.</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+﻿{
+    "id":  "20260114-162944-2335",
+    "created_at":  "2026-01-14T16:29:44.1211737+07:00",
+    "rules":  [
+                  "disable_consumer_experiences",
+                  "reduce_telemetry_basic",
+                  "limit_background_apps"
+              ],
+    "services":  [
+
+                 ],
+    "tasks":  [
+
+              ],
+    "registry":  [
+                     {
+                         "kind":  null,
+                         "path":  "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+                         "name":  "DisableWindowsConsumerFeatures",
+                         "value":  null,
+                         "exists":  false
+                     },
+                     {
+                         "kind":  null,
+                         "path":  "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+                         "name":  "AllowTelemetry",
+                         "value":  null,
+                         "exists":  false
+                     },
+                     {
+                         "kind":  null,
+                         "path":  "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+                         "name":  "LetAppsRunInBackground",
+                         "value":  null,
+                         "exists":  false
+                     }
+                 ]
+}

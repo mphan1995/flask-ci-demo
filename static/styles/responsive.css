@@ -1,0 +1,32 @@
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 36px 24px 18px;
+  }
+  .hero-right {
+    align-items: flex-start;
+  }
+  .tabs {
+    padding: 0 24px 18px;
+  }
+  main {
+    padding: 0 24px 48px;
+  }
+  .grid-wide {
+    grid-template-columns: 1fr;
+  }
+  .table-tools {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .table-tools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .table-tools .input,
+  .table-tools select.input {
+    width: 100%;
+  }
+}

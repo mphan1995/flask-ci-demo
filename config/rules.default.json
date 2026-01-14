@@ -1,0 +1,237 @@
+{
+  "version": "1.0",
+  "groups": [
+    {"id": "A", "title": "AI / Copilot / Bing / Web Experience"},
+    {"id": "B", "title": "Widgets / Feeds"},
+    {"id": "C", "title": "Telemetry"},
+    {"id": "D", "title": "Background scheduled tasks"},
+    {"id": "E", "title": "Optional services"}
+  ],
+  "rules": [
+    {
+      "id": "disable_copilot_entrypoints",
+      "group": "A",
+      "title": "Disable Windows Copilot entrypoints",
+      "risk": "LOW",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot",
+          "name": "TurnOffWindowsCopilot",
+          "value": 1,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 1},
+      "apply": {"value": 1, "valueType": "DWord"},
+      "enable": {"value": 0, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Disables Copilot entrypoints via policy. No file changes."
+    },
+    {
+      "id": "disable_bing_search_suggestions",
+      "group": "A",
+      "title": "Disable Bing search suggestions in Start",
+      "risk": "LOW",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Explorer",
+          "name": "DisableSearchBoxSuggestions",
+          "value": 1,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 1},
+      "apply": {"value": 1, "valueType": "DWord"},
+      "enable": {"value": 0, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Stops Start menu web suggestions; keeps local search."
+    },
+    {
+      "id": "disable_bing_search_in_start",
+      "group": "A",
+      "title": "Disable Bing web search in Start",
+      "risk": "LOW",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Search",
+          "name": "BingSearchEnabled",
+          "value": 0,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 0},
+      "apply": {"value": 0, "valueType": "DWord"},
+      "enable": {"value": 1, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Disables web results in Start search."
+    },
+    {
+      "id": "disable_widgets_policy",
+      "group": "B",
+      "title": "Disable Widgets via policy",
+      "risk": "LOW",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+          "name": "AllowWidgets",
+          "value": 0,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 0},
+      "apply": {"value": 0, "valueType": "DWord"},
+      "enable": {"value": 1, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Disables Widgets feed policy."
+    },
+    {
+      "id": "disable_widgets_taskbar",
+      "group": "B",
+      "title": "Hide Widgets button on taskbar",
+      "risk": "LOW",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+          "name": "TaskbarDa",
+          "value": 0,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 0},
+      "apply": {"value": 0, "valueType": "DWord"},
+      "enable": {"value": 1, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Hides the Widgets button without removing the feature."
+    },
+    {
+      "id": "disable_consumer_experiences",
+      "group": "E",
+      "title": "Disable Microsoft consumer experiences",
+      "risk": "LOW",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent",
+          "name": "DisableWindowsConsumerFeatures",
+          "value": 1,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 1},
+      "apply": {"value": 1, "valueType": "DWord"},
+      "enable": {"value": 0, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Reduces promotional content and suggestions."
+    },
+    {
+      "id": "reduce_telemetry_basic",
+      "group": "C",
+      "title": "Set telemetry to basic (policy)",
+      "risk": "MEDIUM",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection",
+          "name": "AllowTelemetry",
+          "value": 1,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 1},
+      "apply": {"value": 1, "valueType": "DWord"},
+      "enable": {"value": 3, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Limits telemetry to basic level without disabling updates."
+    },
+    {
+      "id": "disable_diagtrack_service",
+      "group": "C",
+      "title": "Disable Connected User Experiences and Telemetry service",
+      "risk": "MEDIUM",
+      "type": "service",
+      "targets": [
+        {"name": "DiagTrack"}
+      ],
+      "detect": {"startType": "Disabled"},
+      "apply": {"startType": "Disabled", "stop": true},
+      "enable": {"startType": "Automatic"},
+      "rollback": {"action": "restore"},
+      "notes": "Stops the telemetry service if present."
+    },
+    {
+      "id": "disable_ceip_tasks",
+      "group": "D",
+      "title": "Disable CEIP scheduled tasks",
+      "risk": "LOW",
+      "type": "task",
+      "targets": [
+        {"path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator"},
+        {"path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\KernelCeipTask"},
+        {"path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip"}
+      ],
+      "detect": {"enabled": false},
+      "apply": {"enabled": false},
+      "enable": {"enabled": true},
+      "rollback": {"action": "restore"},
+      "notes": "Disables CEIP telemetry tasks if they exist."
+    },
+    {
+      "id": "disable_application_experience_tasks",
+      "group": "D",
+      "title": "Disable Application Experience tasks",
+      "risk": "MEDIUM",
+      "type": "task",
+      "targets": [
+        {"path": "\\Microsoft\\Windows\\Application Experience\\ProgramDataUpdater"},
+        {"path": "\\Microsoft\\Windows\\Application Experience\\StartupAppTask"}
+      ],
+      "detect": {"enabled": false},
+      "apply": {"enabled": false},
+      "enable": {"enabled": true},
+      "rollback": {"action": "restore"},
+      "notes": "Reduces background app telemetry tasks."
+    },
+    {
+      "id": "disable_xbox_services",
+      "group": "E",
+      "title": "Disable Xbox related services",
+      "risk": "MEDIUM",
+      "type": "service",
+      "targets": [
+        {"name": "XblGameSave"},
+        {"name": "XboxGipSvc"},
+        {"name": "XboxNetApiSvc"}
+      ],
+      "detect": {"startType": "Disabled"},
+      "apply": {"startType": "Disabled", "stop": true},
+      "enable": {"startType": "Automatic"},
+      "rollback": {"action": "restore"},
+      "notes": "Optional: disable Xbox services if not needed."
+    },
+    {
+      "id": "limit_background_apps",
+      "group": "E",
+      "title": "Limit background apps (policy)",
+      "risk": "MEDIUM",
+      "type": "registry",
+      "targets": [
+        {
+          "path": "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy",
+          "name": "LetAppsRunInBackground",
+          "value": 2,
+          "valueType": "DWord"
+        }
+      ],
+      "detect": {"value": 2},
+      "apply": {"value": 2, "valueType": "DWord"},
+      "enable": {"value": 0, "valueType": "DWord"},
+      "rollback": {"action": "restore"},
+      "notes": "Optional: blocks background apps globally."
+    }
+  ]
+}

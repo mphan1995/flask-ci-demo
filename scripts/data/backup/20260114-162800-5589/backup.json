@@ -1,0 +1,22 @@
+﻿{
+    "id":  "20260114-162800-5589",
+    "created_at":  "2026-01-14T16:28:00.3195765+07:00",
+    "rules":  [
+                  "disable_widgets_policy"
+              ],
+    "services":  [
+
+                 ],
+    "tasks":  [
+
+              ],
+    "registry":  [
+                     {
+                         "kind":  null,
+                         "path":  "HKLM\\SOFTWARE\\Policies\\Microsoft\\Dsh",
+                         "name":  "AllowWidgets",
+                         "value":  null,
+                         "exists":  false
+                     }
+                 ]
+}

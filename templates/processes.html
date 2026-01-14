@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resource Monitor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="fx-grid"></div>
+  <div class="fx-glow"></div>
+  <div class="fx-swoosh"></div>
+
+  <header class="hero">
+    <div class="hero-left">
+      <span class="tag">MAX ENGINE / WIN11</span>
+      <h1>Resource Monitor</h1>
+      <p class="subtitle">Find memory-heavy apps and map related services to existing rules.</p>
+      <div class="chip-row">
+        <span id="admin-status" class="chip">Admin: Unknown</span>
+        <span id="health-status" class="chip">Status: Idle</span>
+      </div>
+      <div class="page-links">
+        <a class="page-link" href="/">Dashboard</a>
+        <a class="page-link" href="/list">Service list</a>
+        <a class="page-link" href="/check">Local check</a>
+        <a class="page-link active" href="/processes">Resource monitor</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="signal-bars" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <span class="stat-label">Processes</span>
+          <span id="stat-processes" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Process Groups</span>
+          <span id="stat-groups" class="stat-value">-</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Top RAM (MB)</span>
+          <span id="stat-top-ram" class="stat-value">-</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <div class="card">
+        <div class="card-head">
+          <h2>Controls</h2>
+          <span class="muted">Refresh and filter.</span>
+        </div>
+        <div class="actions">
+          <button id="process-refresh" class="btn primary">Refresh scan</button>
+        </div>
+        <div id="process-progress" class="progress hidden">Idle.</div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Scan summary</h2>
+          <span class="muted">Process + service sources.</span>
+        </div>
+        <div id="process-summary" class="kv muted">No data yet.</div>
+      </div>
+    </section>
+
+    <section class="grid grid-wide">
+      <div class="card card-wide">
+        <div class="card-head">
+          <div>
+            <h2>Memory-heavy processes</h2>
+            <span class="muted">Use search to find apps like Chrome, Teams, or Zalo.</span>
+          </div>
+          <div class="table-tools">
+            <input id="process-search" class="input input-sm" placeholder="Search process or service" />
+            <input id="process-min-ram" class="input input-sm" type="number" min="0" step="50" placeholder="Min RAM (MB)" />
+            <select id="process-limit" class="input input-sm">
+              <option value="15">Top 15</option>
+              <option value="30" selected>Top 30</option>
+              <option value="50">Top 50</option>
+              <option value="100">Top 100</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Process</th>
+                <th>Instances</th>
+                <th>RAM (MB)</th>
+                <th>Services &amp; Rules</th>
+              </tr>
+            </thead>
+            <tbody id="process-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+
+  <script type="module" src="{{ url_for('static', filename='processes.js') }}"></script>
+</body>
+</html>
