@@ -1,4 +1,4 @@
-# MAX_ENGINE_WIN11
+# Windows Optimize Services Engine - Platform
 
 Local-only Flask app for safe Windows 11 optimization. Default mode is read-only (scan + plan). Apply only runs when the user clicks Apply and runs with Administrator privileges.
 
