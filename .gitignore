@@ -69,8 +69,9 @@ cache/
 output/
 
 # Application runtime data
-data/backup/
-data/logs/
+scripts/ps/data/backup
+scripts/ps/data/logs
+
 
 # =========================
 # Windows system / Registry dump
