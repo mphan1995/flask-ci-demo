@@ -28,13 +28,13 @@ if ($selectedRules.Count -eq 0) {
 $plan = @()
 foreach ($rule in $selectedRules) {
     $statusInfo = Get-RuleStatus -Rule $rule
-    $action = "apply"
+    $planAction = "apply"
     if ($Action -eq "disable") {
-        if ($statusInfo.status -eq "Disabled") { $action = "skip" }
-        if ($statusInfo.status -eq "NotFound") { $action = "skip_not_found" }
+        if ($statusInfo.status -eq "Disabled") { $planAction = "skip" }
+        if ($statusInfo.status -eq "NotFound") { $planAction = "skip_not_found" }
     } else {
-        if ($statusInfo.status -eq "Enabled") { $action = "skip" }
-        if ($statusInfo.status -eq "NotFound") { $action = "skip_not_found" }
+        if ($statusInfo.status -eq "Enabled") { $planAction = "skip" }
+        if ($statusInfo.status -eq "NotFound") { $planAction = "skip_not_found" }
     }
     $plan += [ordered]@{
         id = $rule.id
@@ -42,7 +42,7 @@ foreach ($rule in $selectedRules) {
         risk = $rule.risk
         type = $rule.type
         status = $statusInfo.status
-        action = $action
+        action = $planAction
     }
 }
 
@@ -135,22 +135,33 @@ foreach ($rule in $selectedRules) {
     } else {
         $enable = if ($null -ne $rule.enable) { $rule.enable } else { [pscustomobject]@{} }
         if ($rule.type -eq "service") {
-            $startType = $enable.startType
+            $startType = Get-ObjectPropertyValue -Object $enable -Name "startType"
             if (-not $startType) { $startType = "Manual" }
+            $startService = $false
+            $enableStart = Get-ObjectPropertyValue -Object $enable -Name "start"
+            if ($null -ne $enableStart) {
+                $startService = [bool]$enableStart
+            } else {
+                $spec = Resolve-ServiceStartSpec -StartType $startType
+                if ($spec.StartType -eq "Automatic") {
+                    $startService = $true
+                }
+            }
             foreach ($target in $rule.targets) {
-                $res = Safe-SetServiceStartType -Name $target.name -StartType $startType -StopService $false
+                $res = Safe-SetServiceStartType -Name $target.name -StartType $startType -StopService $false -StartService $startService
                 $ruleResults += $res
             }
         } elseif ($rule.type -eq "task") {
             $enabled = $true
-            if ($null -ne $enable.enabled) { $enabled = [bool]$enable.enabled }
+            $enableEnabled = Get-ObjectPropertyValue -Object $enable -Name "enabled"
+            if ($null -ne $enableEnabled) { $enabled = [bool]$enableEnabled }
             foreach ($target in $rule.targets) {
                 $res = Safe-SetTaskEnabled -TaskPath $target.path -Enabled $enabled
                 $ruleResults += $res
             }
         } elseif ($rule.type -eq "registry") {
-            $enableAction = $enable.action
-            $enableValue = $enable.value
+            $enableAction = Get-ObjectPropertyValue -Object $enable -Name "action"
+            $enableValue = Get-ObjectPropertyValue -Object $enable -Name "value"
             if (-not $enableAction) {
                 if ($null -ne $enableValue) {
                     $enableAction = "set"
@@ -163,7 +174,7 @@ foreach ($rule in $selectedRules) {
                     $res = Safe-RemoveRegistryValue -Path $target.path -Name $target.name
                 } else {
                     $value = $enableValue
-                    $valueType = $enable.valueType
+                    $valueType = Get-ObjectPropertyValue -Object $enable -Name "valueType"
                     if (-not $valueType) { $valueType = $target.valueType }
                     $res = Safe-SetRegistry -Path $target.path -Name $target.name -Value $value -ValueType $valueType
                 }

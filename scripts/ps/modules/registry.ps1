@@ -69,6 +69,18 @@ function Safe-SetRegistry {
             New-Item -Path $regPath -Force | Out-Null
         }
         $current = Get-RegistryValue -Path $Path -Name $Name
+        $typeMismatch = $false
+        if ($current['Exists'] -and $ValueType -and $current['Kind']) {
+            $currentType = $current['Kind'].ToString().ToLowerInvariant()
+            $desiredType = $ValueType.ToString().ToLowerInvariant()
+            if ($currentType -ne $desiredType) {
+                $typeMismatch = $true
+            }
+        }
+        if ($current['Exists'] -and $typeMismatch) {
+            Remove-ItemProperty -Path $regPath -Name $Name -ErrorAction Stop | Out-Null
+            $current = @{ Exists = $false }
+        }
         if ($current['Exists']) {
             Set-ItemProperty -Path $regPath -Name $Name -Value $Value -ErrorAction Stop | Out-Null
         } else {
@@ -82,6 +94,13 @@ function Safe-SetRegistry {
         $verify = Get-RegistryValue -Path $Path -Name $Name
         if (-not $verify['Exists'] -or $verify['Value'] -ne $Value) {
             return @{ status = "Error"; target = "$Path\\$Name"; error = "registry value not set correctly" }
+        }
+        if ($ValueType -and $verify['Kind']) {
+            $verifyType = $verify['Kind'].ToString().ToLowerInvariant()
+            $desiredType = $ValueType.ToString().ToLowerInvariant()
+            if ($verifyType -ne $desiredType) {
+                return @{ status = "Error"; target = "$Path\\$Name"; error = "registry value type mismatch" }
+            }
         }
         return @{ status = "Ok"; target = "$Path\\$Name" }
     } catch {

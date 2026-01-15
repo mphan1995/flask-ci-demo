@@ -244,7 +244,8 @@ function Safe-SetServiceStartType {
     param(
         [string]$Name,
         [string]$StartType,
-        [bool]$StopService
+        [bool]$StopService,
+        [bool]$StartService = $false
     )
 
     $startSpec = Resolve-ServiceStartSpec -StartType $StartType
@@ -311,6 +312,18 @@ function Safe-SetServiceStartType {
         $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
         if ($svc -and $svc.Status -eq "Running") {
             $errors += "service still running"
+        }
+    }
+
+    if ($StartService -and $svc -and $normalized -ne "Disabled") {
+        try {
+            Start-Service -Name $Name -ErrorAction Stop
+        } catch {
+            $errors += $_.Exception.Message
+        }
+        $svc = Get-Service -Name $Name -ErrorAction SilentlyContinue
+        if ($svc -and $svc.Status -ne "Running") {
+            $errors += "service not running"
         }
     }
 

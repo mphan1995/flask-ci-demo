@@ -232,6 +232,96 @@ function renderPlanSummary(plan) {
   `;
 }
 
+function getSummaryCounts(summary) {
+  return {
+    success: Number(summary?.success || 0),
+    failed: Number(summary?.failed || 0),
+    skipped: Number(summary?.skipped || 0),
+    skippedNotFound: Number(summary?.skipped_not_found || 0),
+  };
+}
+
+function getAlreadyMessage(action, counts) {
+  if (counts.skipped <= 0) return null;
+  const message =
+    action === "enable"
+      ? "This feature has been enabled already."
+      : "This feature has been disabled already.";
+  const allSkipped = counts.success === 0 && counts.failed === 0;
+  return { message, allSkipped };
+}
+
+function getRuleTitle(id) {
+  const rule = state.rules.find((item) => item.id === id);
+  return rule?.title || id;
+}
+
+function translateApplyError(error) {
+  if (!error) return "Could not apply the change.";
+  const lowered = error.toLowerCase();
+  if (lowered.includes("post-check not enabled")) {
+    return "After enabling, the status is still not Enabled.";
+  }
+  if (lowered.includes("post-check not disabled")) {
+    return "After disabling, the status is still not Disabled.";
+  }
+  if (lowered.includes("service still running")) {
+    return "The service is still running.";
+  }
+  if (lowered.includes("task still running")) {
+    return "The task is still running.";
+  }
+  if (lowered.includes("registry value not set correctly")) {
+    return "Failed to write the registry value.";
+  }
+  if (lowered.includes("registry value type mismatch")) {
+    return "Registry value type mismatch.";
+  }
+  if (lowered.includes("registry key not found")) {
+    return "Registry key not found.";
+  }
+  if (lowered.includes("access is denied")) {
+    return "Access denied when applying the change.";
+  }
+  return error;
+}
+
+function getFailureMessages(data) {
+  const failures = (data?.results || []).filter(
+    (item) => item.status === "Failed"
+  );
+  if (!failures.length) return [];
+  return failures.map((failure) => {
+    const title = getRuleTitle(failure.id);
+    const details = failure.results || [];
+    const errorEntry = details.find((item) => item.status === "Error");
+    if (errorEntry?.error) {
+      const reason = translateApplyError(errorEntry.error);
+      const target = errorEntry.target ? ` (${errorEntry.target})` : "";
+      return `${title}: ${reason}${target}`;
+    }
+    const postCheck = details.find((item) => item.status === "PostCheck");
+    const actual = postCheck?.detail?.status;
+    if (actual) {
+      const expected = data.action === "enable" ? "Enabled" : "Disabled";
+      return `${title}: After apply, status is ${actual} (expected ${expected}).`;
+    }
+    return `${title}: Could not apply the change.`;
+  });
+}
+
+function showFailureToasts(data) {
+  const messages = getFailureMessages(data);
+  if (!messages.length) return;
+  const limit = 3;
+  messages.slice(0, limit).forEach((message) => {
+    showToast(`Failure: ${message}`, "error");
+  });
+  if (messages.length > limit) {
+    showToast(`Failure: ${messages.length - limit} more item(s) failed.`, "error");
+  }
+}
+
 async function loadHealth() {
   try {
     const data = await fetchJson("/api/health");
@@ -331,10 +421,18 @@ async function applySelected() {
       }),
     });
     renderPlanSummary(data);
-    if (data.summary && data.summary.failed > 0) {
-      showToast(`Apply completed with ${data.summary.failed} failed`, "error");
+    const counts = getSummaryCounts(data.summary);
+    const already = getAlreadyMessage("disable", counts);
+    if (counts.failed > 0) {
+      showToast(`Apply completed with ${counts.failed} failed`, "error");
+      showFailureToasts(data);
+    } else if (already?.allSkipped) {
+      showToast(already.message, "info");
     } else {
       showToast("Apply completed", "success");
+    }
+    if (already && !already.allSkipped && counts.failed === 0) {
+      showToast(already.message, "info");
     }
     if (data.log_id) {
       showToast(`Log saved: ${data.log_id}`, "success");
@@ -374,10 +472,18 @@ async function enableSelected() {
       }),
     });
     renderPlanSummary(data);
-    if (data.summary && data.summary.failed > 0) {
-      showToast(`Enable completed with ${data.summary.failed} failed`, "error");
+    const counts = getSummaryCounts(data.summary);
+    const already = getAlreadyMessage("enable", counts);
+    if (counts.failed > 0) {
+      showToast(`Enable completed with ${counts.failed} failed`, "error");
+      showFailureToasts(data);
+    } else if (already?.allSkipped) {
+      showToast(already.message, "info");
     } else {
       showToast("Enable completed", "success");
+    }
+    if (already && !already.allSkipped && counts.failed === 0) {
+      showToast(already.message, "info");
     }
     if (data.log_id) {
       showToast(`Log saved: ${data.log_id}`, "success");

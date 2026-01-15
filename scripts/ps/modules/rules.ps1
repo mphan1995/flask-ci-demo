@@ -47,7 +47,11 @@ function Get-RuleStatus {
                 continue
             }
             $found += 1
-            if ($task.Settings.Enabled -eq $expectedEnabled) {
+            $matches = ($task.Settings.Enabled -eq $expectedEnabled)
+            if ($matches -and -not $expectedEnabled -and $task.State -eq "Running") {
+                $matches = $false
+            }
+            if ($matches) {
                 $disabled += 1
             }
         }

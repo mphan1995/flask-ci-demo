@@ -71,6 +71,7 @@ output/
 # Application runtime data
 scripts/ps/data/backup
 scripts/ps/data/logs
+scripts/data/backup/
 
 
 # =========================
