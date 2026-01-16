@@ -14,6 +14,59 @@ function Require-Admin {
     }
 }
 
+function Get-ProcessCpuUsage {
+    param([int]$SampleMs = 750)
+
+    $cpuCount = [Environment]::ProcessorCount
+    if ($cpuCount -lt 1) {
+        $cpuCount = 1
+    }
+
+    $snapshot1 = @{}
+    $processes = Get-Process -ErrorAction SilentlyContinue
+    foreach ($proc in $processes) {
+        if ($null -eq $proc.Id) {
+            continue
+        }
+        $cpu = if ($null -ne $proc.CPU) { [double]$proc.CPU } else { 0 }
+        $snapshot1[$proc.Id] = $cpu
+    }
+
+    Start-Sleep -Milliseconds $SampleMs
+
+    $snapshot2 = @{}
+    $processes = Get-Process -ErrorAction SilentlyContinue
+    foreach ($proc in $processes) {
+        if ($null -eq $proc.Id) {
+            continue
+        }
+        $cpu = if ($null -ne $proc.CPU) { [double]$proc.CPU } else { 0 }
+        $snapshot2[$proc.Id] = $cpu
+    }
+
+    $interval = [double]$SampleMs / 1000
+    if ($interval -le 0) {
+        $interval = 1
+    }
+
+    $usage = @{}
+    foreach ($pid in $snapshot2.Keys) {
+        $cpu2 = $snapshot2[$pid]
+        $cpu1 = if ($snapshot1.ContainsKey($pid)) { $snapshot1[$pid] } else { $cpu2 }
+        $delta = $cpu2 - $cpu1
+        if ($delta -lt 0) {
+            $delta = 0
+        }
+        $pct = ($delta / $interval) / $cpuCount * 100
+        if ($pct -lt 0) {
+            $pct = 0
+        }
+        $usage[$pid] = [math]::Round($pct, 2)
+    }
+
+    return $usage
+}
+
 function Get-DataRoot {
     $scriptsRoot = Split-Path -Parent $PSScriptRoot
     return (Join-Path $scriptsRoot "data")

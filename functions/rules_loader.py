@@ -10,13 +10,49 @@ RULE_ID_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
 REQUIRED_FIELDS = {"id", "title", "risk", "type", "targets", "detect", "apply", "rollback"}
 
 
-def load_rules(rules_path: Path) -> dict:
+def _merge_groups(base_groups: list, extra_groups: list) -> list:
+    merged = []
+    seen = set()
+    for group in base_groups + extra_groups:
+        if not isinstance(group, dict):
+            continue
+        group_id = group.get("id")
+        if not group_id or group_id in seen:
+            continue
+        merged.append(group)
+        seen.add(group_id)
+    return merged
+
+
+def load_rules(rules_path: Path, detected_path: Path | None = None) -> dict:
     with rules_path.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
 
     rules = data.get("rules", [])
     if not isinstance(rules, list):
         raise ValueError("rules must be a list")
+
+    groups = data.get("groups", [])
+    if not isinstance(groups, list):
+        groups = []
+
+    extra_rules = []
+    extra_groups = []
+    if detected_path and detected_path.exists():
+        try:
+            extra_data = json.loads(detected_path.read_text(encoding="utf-8"))
+            extra_rules = extra_data.get("rules", [])
+            extra_groups = extra_data.get("groups", [])
+        except Exception:
+            extra_rules = []
+            extra_groups = []
+
+    if isinstance(extra_rules, list) and extra_rules:
+        rules = rules + extra_rules
+    if isinstance(extra_groups, list) and extra_groups:
+        data["groups"] = _merge_groups(groups, extra_groups)
+    else:
+        data["groups"] = groups
 
     seen = set()
     for rule in rules:
@@ -29,6 +65,7 @@ def load_rules(rules_path: Path) -> dict:
             raise ValueError(f"duplicate rule id: {rule['id']}")
         seen.add(rule["id"])
 
+    data["rules"] = rules
     return data
 
 

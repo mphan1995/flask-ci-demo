@@ -178,6 +178,7 @@ function Get-AllServices {
                 state = $svc.State
                 start_mode = $svc.StartMode
                 start_value = $null
+                pid = if ($null -ne $svc.ProcessId) { [int]$svc.ProcessId } else { $null }
                 source = "cim"
             }
         }
@@ -197,6 +198,7 @@ function Get-AllServices {
                 state = $svc.Status.ToString()
                 start_mode = $svc.StartType.ToString()
                 start_value = $null
+                pid = $null
                 source = "get-service"
             }
         }
@@ -227,6 +229,7 @@ function Get-AllServices {
                     state = "Unknown"
                     start_mode = if ($null -ne $startValue) { Convert-ServiceStartValueToType -Value $startValue } else { $null }
                     start_value = $startValue
+                    pid = $null
                     source = "registry"
                 }
             }
