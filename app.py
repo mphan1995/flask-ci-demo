@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import platform
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,10 +20,46 @@ PS_DIR = BASE_DIR / "scripts" / "ps"
 DATA_DIR = BASE_DIR / "scripts" / "data"
 LOG_DIR = DATA_DIR / "logs"
 BACKUP_DIR = DATA_DIR / "backup"
+DETECTED_RULES_PATH = DATA_DIR / "rules.detected.json"
 
 app = Flask(__name__)
 
 RISK_ORDER = {"LOW": 1, "MEDIUM": 2, "HIGH": 3}
+CPU_RULE_GROUP_ID = "F"
+CPU_RULE_GROUP_TITLE = "Detected CPU-heavy services"
+CPU_RULE_MIN_PERCENT = 1.0
+CPU_RULE_MIN_COUNT = 3
+CPU_RULE_MAX_COUNT = 15
+RULE_ID_SLUG_RE = re.compile(r"[^A-Za-z0-9_.-]+")
+CPU_RULE_SKIP_SERVICES = {
+    "bfe",
+    "bits",
+    "dcomlaunch",
+    "dhcp",
+    "dnscache",
+    "dosvc",
+    "eventlog",
+    "iphlpsvc",
+    "lanmanserver",
+    "lanmanworkstation",
+    "mpssvc",
+    "netman",
+    "nlasvc",
+    "rpcss",
+    "rpceptmapper",
+    "securityhealthservice",
+    "sense",
+    "trustedinstaller",
+    "usosvc",
+    "w32time",
+    "waasmedicsvc",
+    "wlansvc",
+    "wdnissvc",
+    "windefend",
+    "winmgmt",
+    "wscsvc",
+    "wuauserv",
+}
 
 
 def build_service_rule_map(rules: list[dict]) -> dict[str, dict]:
@@ -55,6 +92,147 @@ def build_service_rule_map(rules: list[dict]) -> dict[str, dict]:
         entry["groups"] = sorted({g for g in entry["groups"] if g})
         entry["notes"] = " / ".join(sorted(set(entry["notes"])))
     return mapping
+
+
+def collect_service_targets(rules: list[dict]) -> set[str]:
+    targets = set()
+    for rule in rules:
+        if rule.get("type") != "service":
+            continue
+        for target in rule.get("targets", []):
+            name = target.get("name")
+            if name:
+                targets.add(name.lower())
+    return targets
+
+
+def normalize_start_type(value: str | None) -> str:
+    if not value:
+        return "Manual"
+    normalized = value.strip().lower()
+    if normalized in {"auto", "automatic", "automatic (delayed start)", "automaticdelayedstart"}:
+        return "Automatic"
+    if normalized == "manual":
+        return "Manual"
+    if normalized == "disabled":
+        return "Disabled"
+    if normalized == "boot":
+        return "Boot"
+    if normalized == "system":
+        return "System"
+    return "Manual"
+
+
+def service_is_disabled(service: dict) -> bool:
+    start_mode = (service.get("start_mode") or "").lower()
+    start_value = service.get("start_value")
+    return start_value == 4 or start_mode == "disabled"
+
+
+def slugify_service_name(name: str) -> str:
+    slug = RULE_ID_SLUG_RE.sub("_", name.strip().lower())
+    slug = slug.strip("_")
+    return slug or "service"
+
+
+def should_skip_detected_service(service: dict, excluded: set[str]) -> bool:
+    name = (service.get("name") or "").lower()
+    if not name:
+        return True
+    if name in excluded:
+        return True
+    if name in CPU_RULE_SKIP_SERVICES:
+        return True
+    start_mode = (service.get("start_mode") or "").lower()
+    if start_mode in {"boot", "system"}:
+        return True
+    return False
+
+
+def build_detected_cpu_rules(
+    services: list[dict], excluded: set[str] | None = None
+) -> tuple[list[dict], list[dict]]:
+    excluded_set = {name.lower() for name in excluded} if excluded else set()
+    candidates: list[tuple[float, dict]] = []
+    for service in services:
+        if should_skip_detected_service(service, excluded_set):
+            continue
+        cpu = service.get("cpu_percent")
+        if cpu is None:
+            continue
+        try:
+            cpu_value = float(cpu)
+        except (TypeError, ValueError):
+            continue
+        if cpu_value <= 0:
+            continue
+        candidates.append((cpu_value, service))
+
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    selected = [item for item in candidates if item[0] >= CPU_RULE_MIN_PERCENT]
+    if len(selected) < CPU_RULE_MIN_COUNT:
+        selected = candidates[:CPU_RULE_MIN_COUNT]
+    selected = selected[:CPU_RULE_MAX_COUNT]
+
+    rules: list[dict] = []
+    results: list[dict] = []
+    seen_ids = set()
+    for cpu_value, service in selected:
+        name = service.get("name")
+        if not name:
+            continue
+        rule_id = f"detected_cpu_{slugify_service_name(name)}"
+        if rule_id in seen_ids:
+            continue
+        seen_ids.add(rule_id)
+        display_name = service.get("display_name") or name
+        start_mode = normalize_start_type(service.get("start_mode"))
+        if start_mode == "Disabled":
+            start_mode = "Manual"
+        notes = f"Detected CPU {cpu_value:.2f}% on last scan."
+        title = f"Disable CPU-heavy service: {display_name}"
+        rule = {
+            "id": rule_id,
+            "group": CPU_RULE_GROUP_ID,
+            "title": title,
+            "risk": "MEDIUM",
+            "type": "service",
+            "targets": [{"name": name}],
+            "detect": {"startType": "Disabled"},
+            "apply": {"startType": "Disabled", "stop": True},
+            "enable": {"startType": start_mode},
+            "rollback": {"action": "restore"},
+            "notes": notes,
+        }
+        rules.append(rule)
+        results.append(
+            {
+                "id": rule_id,
+                "title": title,
+                "group": CPU_RULE_GROUP_ID,
+                "risk": "MEDIUM",
+                "type": "service",
+                "status": "Disabled" if service_is_disabled(service) else "Enabled",
+                "notes": notes,
+                "details": notes,
+            }
+        )
+    return rules, results
+
+
+def write_detected_rules(rules: list[dict]) -> None:
+    payload = {
+        "version": "1.0",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "source": "scan",
+        "threshold_percent": CPU_RULE_MIN_PERCENT,
+        "min_rules": CPU_RULE_MIN_COUNT,
+        "max_rules": CPU_RULE_MAX_COUNT,
+        "groups": [{"id": CPU_RULE_GROUP_ID, "title": CPU_RULE_GROUP_TITLE}],
+        "rules": rules,
+    }
+    DETECTED_RULES_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DETECTED_RULES_PATH.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 def json_error(message: str, status: int = 400, details: dict | None = None):
@@ -135,7 +313,30 @@ def api_scan():
     )
     if not result["ok"]:
         return json_error("scan failed", status=500, details=result["error"])
-    return jsonify(result["data"])
+    data = result["data"]
+    if not data.get("ok", True):
+        return json_error("scan failed", status=500, details=data)
+
+    excluded_services = set()
+    try:
+        base_rules = load_rules(RULES_PATH)["rules"]
+        excluded_services = collect_service_targets(base_rules)
+    except Exception:
+        excluded_services = set()
+
+    detected_rules, detected_results = build_detected_cpu_rules(
+        data.get("services_running", []), excluded_services
+    )
+    try:
+        write_detected_rules(detected_rules)
+    except Exception:
+        pass
+
+    rules = data.get("rules", [])
+    if detected_results:
+        rules = rules + detected_results
+    data["rules"] = rules
+    return jsonify(data)
 
 
 @app.get("/api/services")
@@ -155,7 +356,7 @@ def api_services():
         return json_error("services scan failed", status=500, details=data)
 
     try:
-        rules = load_rules(RULES_PATH)["rules"]
+        rules = load_rules(RULES_PATH, DETECTED_RULES_PATH)["rules"]
     except Exception as exc:
         return json_error("failed to load rules", status=500, details={"error": str(exc)})
 
@@ -199,7 +400,7 @@ def api_processes():
     services = data.get("services", [])
 
     try:
-        rules = load_rules(RULES_PATH)["rules"]
+        rules = load_rules(RULES_PATH, DETECTED_RULES_PATH)["rules"]
     except Exception as exc:
         return json_error("failed to load rules", status=500, details={"error": str(exc)})
 
@@ -319,7 +520,7 @@ def api_apply():
         return json_error("action must be disable or enable")
 
     try:
-        rules = load_rules(RULES_PATH)["rules"]
+        rules = load_rules(RULES_PATH, DETECTED_RULES_PATH)["rules"]
     except Exception as exc:
         return json_error("failed to load rules", status=500, details={"error": str(exc)})
 
