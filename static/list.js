@@ -28,6 +28,15 @@ function getStartValue(service) {
   return service.start_value;
 }
 
+function formatCpu(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return "-";
+  }
+  const rounded = Math.round(numeric * 10) / 10;
+  return `${rounded}%`;
+}
+
 function getServiceState(service) {
   return service.state || "Unknown";
 }
@@ -126,7 +135,7 @@ function renderTable() {
   elements.table.innerHTML = "";
   if (!filtered.length) {
     const row = document.createElement("tr");
-    row.innerHTML = "<td colspan='6' class='muted'>No services found.</td>";
+    row.innerHTML = "<td colspan='7' class='muted'>No services found.</td>";
     elements.table.appendChild(row);
     return;
   }
@@ -135,12 +144,14 @@ function renderTable() {
     const status = isDisabled(service)
       ? "Disabled"
       : getServiceState(service);
+    const cpuLabel = formatCpu(service.cpu_percent);
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${service.display_name || service.name}</td>
       <td>${statusBadge(status)}</td>
       <td>${service.start_mode || "-"}</td>
       <td>${getStartValue(service)}</td>
+      <td>${cpuLabel}</td>
       <td>${riskBadge(service.risk)}</td>
       <td title="${service.notes || ""}">${service.notes || ""}</td>
     `;

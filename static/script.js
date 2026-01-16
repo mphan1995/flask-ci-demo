@@ -82,6 +82,20 @@ function setActionState() {
   });
 }
 
+function getCpuValue(service) {
+  const value = Number(service?.cpu_percent);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function formatCpu(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) {
+    return "-";
+  }
+  const rounded = Math.round(numeric * 10) / 10;
+  return `${rounded}%`;
+}
+
 function renderSystemInfo() {
   if (!elements.systemInfo) return;
   if (!state.system) {
@@ -126,17 +140,28 @@ function renderServices() {
     );
   });
 
-  if (!filtered.length) {
+  const sorted = filtered
+    .slice()
+    .sort((a, b) => {
+      const diff = getCpuValue(b) - getCpuValue(a);
+      if (diff !== 0) return diff;
+      const nameA = (a.display_name || a.name || "").toLowerCase();
+      const nameB = (b.display_name || b.name || "").toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+  if (!sorted.length) {
     elements.servicesList.textContent = "No services match that filter.";
     return;
   }
 
-  filtered.forEach((service) => {
+  sorted.forEach((service) => {
     const row = document.createElement("div");
     row.className = "service-item";
+    const cpuLabel = formatCpu(service.cpu_percent);
     row.innerHTML = `
       <div class="service-name">${service.display_name || service.name}</div>
-      <div class="service-meta">${service.name} :: ${service.start_mode || "-"}</div>
+      <div class="service-meta">${service.name} :: ${service.start_mode || "-"} :: CPU ${cpuLabel}</div>
     `;
     elements.servicesList.appendChild(row);
   });
@@ -182,6 +207,15 @@ function renderTable(tableEl, rules) {
 function syncCheckboxes(id, checked) {
   qsa(`input[data-rule-id='${id}']`).forEach((input) => {
     input.checked = checked;
+  });
+}
+
+function pruneSelectedRules() {
+  const validIds = new Set(state.rules.map((rule) => rule.id));
+  state.selected.forEach((id) => {
+    if (!validIds.has(id)) {
+      state.selected.delete(id);
+    }
   });
 }
 
@@ -341,6 +375,7 @@ async function scanSystem() {
   try {
     const data = await fetchJson("/api/scan");
     state.rules = data.rules || [];
+    pruneSelectedRules();
     state.system = data.system || null;
     state.servicesSummary = data.services_summary || null;
     state.servicesRunning = data.services_running || [];
