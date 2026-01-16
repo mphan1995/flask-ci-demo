@@ -39,6 +39,29 @@ foreach ($rule in $rules) {
 
 $serviceData = Get-AllServices
 $servicesAll = @($serviceData.items)
+$cpuMap = @{}
+$hasPid = $false
+foreach ($service in $servicesAll) {
+    if ($service.pid -and [int]$service.pid -gt 0) {
+        $hasPid = $true
+        break
+    }
+}
+if ($hasPid) {
+    try {
+        $cpuMap = Get-ProcessCpuUsage -SampleMs 750
+    } catch {
+        $cpuMap = @{}
+    }
+}
+foreach ($service in $servicesAll) {
+    $pid = $service.pid
+    if ($pid -and $cpuMap.ContainsKey($pid)) {
+        $service.cpu_percent = $cpuMap[$pid]
+    } else {
+        $service.cpu_percent = $null
+    }
+}
 $servicesRunning = @(
     $servicesAll |
         Where-Object { $_.state -eq "Running" } |
@@ -50,6 +73,7 @@ $servicesRunning = @(
                 start_mode = $_.start_mode
                 start_value = $_.start_value
                 state = $_.state
+                cpu_percent = $_.cpu_percent
             }
         }
 )
