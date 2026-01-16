@@ -1,17 +1,20 @@
-# Windows Optimize Services Engine - Platform
+# MAX_ENGINE_WIN11
 
-A local-only Flask app to safely review and apply Windows 11 service tweaks. It starts in read-only scan mode, and only makes changes when you click Apply and run as Administrator.
+Local-only Flask app for safe Windows 11 optimization. Default mode is read-only (scan + plan). Apply only runs when the user clicks Apply and runs with Administrator privileges.
 
-## Features
+## English
 
-- Starts with a dry-run plan (no changes)
-- Backup + rollback for services, scheduled tasks, and registry values
-- JSON + text logs for every run
-- Core services are excluded (Windows Update, Defender core, networking, RPC, WMI)
-- Full scan before any actions
-- Idempotent operations (safe to re-apply)
+### Features
 
-## Setup
+- Dry-run by default (no changes).
+- Backup + rollback for services, scheduled tasks, and registry values.
+- JSON + text logs for every run.
+- Skip core services (Windows Update, Defender core, networking, RPC, WMI).
+- Full scan of running services (read-only) before enabling actions.
+- Idempotent operations (safe to re-apply).
+- Detected CPU-heavy service rules generated after scan and shown in Rule Arsenal.
+
+### Setup
 
 ```bash
 python -m venv .venv
@@ -19,7 +22,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## Run
+### Run
 
 ```bash
 python app.py
@@ -27,15 +30,15 @@ python app.py
 
 Open http://127.0.0.1:5050
 
-Extra pages:
+Pages:
 
 - `/list` for the full service ledger
 - `/check` for local verification of targeted services
 - `/processes` for memory-heavy apps and related service hints
 
-## Run elevated (Administrator)
+### Run elevated (Administrator)
 
-Apply and rollback require Administrator rights. On Windows, the app prompts for elevation (UAC). If you cancel, the app exits.
+Apply and rollback require Administrator rights. The app auto-requests elevation when started on Windows (UAC prompt). If you cancel, the app exits.
 
 Manual option:
 
@@ -43,27 +46,16 @@ Manual option:
 2. Right click and choose "Run as administrator"
 3. Activate the venv and run `python app.py`
 
-The UI shows an Admin status badge.
+For CPU-heavy service detection (PID + CPU), run as Administrator. Without admin, detected CPU rules may be empty.
 
-## API
+### Rule engine
 
-- `GET /api/health`
-- `GET /api/scan`
-- `POST /api/apply` body: `{ "selected_actions": ["rule_id"], "mode": "dry_run|apply", "action": "disable|enable" }`
-- `POST /api/rollback` body: `{ "rollback_id": "<backup_id>" }`
-- `GET /api/history`
-- `GET /api/logs/<id>`
-- `GET /api/services`
-- `GET /api/processes`
+Rules are merged from:
 
-## Data paths
+- `config/rules.default.json` (static rules)
+- `scripts/data/rules.detected.json` (auto-generated after scan)
 
-- Backups: `scripts/data/backup/<backup_id>/backup.json`
-- Logs: `scripts/data/logs/`
-
-## Rule engine
-
-Rules live in `config/rules.default.json` and are grouped by category. Each rule defines:
+Each rule defines:
 
 - `type`: registry | service | task
 - `targets`: list of targets
@@ -71,69 +63,13 @@ Rules live in `config/rules.default.json` and are grouped by category. Each rule
 - `apply`: desired state
 - `rollback`: restore from backup
 
-Add a new rule by appending an entry that follows the same schema and reload the app.
+### Data paths
 
-## Safety notes
+- Backups: `scripts/data/backup/<backup_id>/backup.json`
+- Logs: `scripts/data/logs/`
+- Detected rules: `scripts/data/rules.detected.json`
 
-- No file deletions.
-- Core services are not targeted.
-- Always run a scan and dry-run plan before apply.
-- Rollback uses the backup id from the apply summary.
-
-## Development
-
-This project does not use a database. All state is stored in the filesystem for local use.
-
----
-
-# Windows Optimize Services Engine - Platform (Tiếng Việt)
-
-Ứng dụng Flask chạy cục bộ giúp bạn xem xét và áp dụng các tinh chỉnh dịch vụ Windows 11 một cách an toàn. Ứng dụng luôn bắt đầu ở chế độ quét chỉ đọc, và chỉ thay đổi khi bạn bấm Apply và chạy quyền Administrator.
-
-## Tính năng
-
-- Luôn chạy thử (dry-run) trước, không chỉnh sửa hệ thống
-- Sao lưu và hoàn tác cho service, scheduled task, và registry
-- Có log JSON + text cho mỗi lần chạy
-- Bỏ qua các dịch vụ cốt lõi (Windows Update, Defender core, networking, RPC, WMI)
-- Quét đầy đủ trước khi áp dụng
-- Thao tác lặp lại an toàn
-
-## Cài đặt
-
-```bash
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-## Chạy
-
-```bash
-python app.py
-```
-
-Mở http://127.0.0.1:5050
-
-Trang bổ sung:
-
-- `/list` xem toàn bộ danh sách service
-- `/check` kiểm tra nhanh các dịch vụ mục tiêu
-- `/processes` gợi ý app ngốn RAM và dịch vụ liên quan
-
-## Chạy quyền Administrator
-
-Apply và rollback cần quyền Administrator. Trên Windows, ứng dụng sẽ tự hỏi UAC. Nếu bạn hủy, ứng dụng sẽ thoát.
-
-Cách thủ công:
-
-1. Tìm "Windows Terminal"
-2. Chuột phải chọn "Run as administrator"
-3. Kích hoạt venv và chạy `python app.py`
-
-Giao diện sẽ hiển thị trạng thái Admin.
-
-## API
+### API
 
 - `GET /api/health`
 - `GET /api/scan`
@@ -144,30 +80,130 @@ Giao diện sẽ hiển thị trạng thái Admin.
 - `GET /api/services`
 - `GET /api/processes`
 
-## Đường dẫn dữ liệu
+### Safety notes
 
-- Backup: `scripts/data/backup/<backup_id>/backup.json`
-- Logs: `scripts/data/logs/`
+- No file deletions.
+- Core services are not targeted.
+- Always run a scan and dry-run plan before apply.
+- Rollback uses the backup id from the apply summary.
 
-## Rule engine
+### Development
 
-Rules nằm trong `config/rules.default.json` và được nhóm theo danh mục. Mỗi rule gồm:
+This project does not use a database. All state is stored in the filesystem for local use.
+
+### Author
+
+- Creator: Max Phan
+- Zalo: +84 77 9050531
+- Facebook: https://www.facebook.com/facebookcuamax/
+
+### Fun notes
+
+- Designed to run locally; no external network calls in the app code.
+- Every apply creates a rollback point.
+- Rules are plain JSON so they are easy to audit and edit.
+- Detected CPU rules refresh on each scan.
+- Resource Monitor highlights memory-heavy apps and related services.
+
+## Tiếng Việt
+
+### Tính năng
+
+- Mặc định dry-run (không thay đổi).
+- Backup + rollback cho service, scheduled task và registry.
+- Log JSON + text cho mỗi lần chạy.
+- Bỏ qua core services (Windows Update, Defender core, networking, RPC, WMI).
+- Quét toàn bộ service đang chạy (read-only) trước khi áp dụng.
+- Idempotent (an toàn khi áp dụng lại).
+- Tự tạo rule cho service ngốn CPU sau khi scan và hiển thị trong Rule Arsenal.
+
+### Cài đặt
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Chạy
+
+```bash
+python app.py
+```
+
+Mở http://127.0.0.1:5050
+
+Trang:
+
+- `/list` để xem đầy đủ service ledger
+- `/check` để kiểm tra local các service mục tiêu
+- `/processes` để xem app ngốn RAM và gợi ý service liên quan
+
+### Chạy với quyền Administrator
+
+Apply và rollback cần quyền Administrator. App sẽ tự yêu cầu UAC khi khởi chạy. Nếu bạn hủy, app sẽ thoát.
+
+Thủ công:
+
+1. Tìm "Windows Terminal"
+2. Chuột phải và chọn "Run as administrator"
+3. Kích hoạt venv và chạy `python app.py`
+
+Để phát hiện service ngốn CPU (PID + CPU), nên chạy quyền Administrator. Nếu không, detected rules có thể trống.
+
+### Rule engine
+
+Rules được gộp từ:
+
+- `config/rules.default.json` (rule tĩnh)
+- `scripts/data/rules.detected.json` (tự tạo sau khi scan)
+
+Mỗi rule gồm:
 
 - `type`: registry | service | task
 - `targets`: danh sách mục tiêu
 - `detect`: trạng thái được coi là "disabled"
-- `apply`: trạng thái cần đặt
-- `rollback`: khôi phục từ bản sao lưu
+- `apply`: trạng thái áp dụng
+- `rollback`: khôi phục từ backup
 
-Thêm rule mới bằng cách thêm entry theo đúng schema rồi reload app.
+### Đường dẫn dữ liệu
 
-## Lưu ý an toàn
+- Backups: `scripts/data/backup/<backup_id>/backup.json`
+- Logs: `scripts/data/logs/`
+- Detected rules: `scripts/data/rules.detected.json`
+
+### API
+
+- `GET /api/health`
+- `GET /api/scan`
+- `POST /api/apply` body: `{ "selected_actions": ["rule_id"], "mode": "dry_run|apply", "action": "disable|enable" }`
+- `POST /api/rollback` body: `{ "rollback_id": "<backup_id>" }`
+- `GET /api/history`
+- `GET /api/logs/<id>`
+- `GET /api/services`
+- `GET /api/processes`
+
+### Lưu ý an toàn
 
 - Không xóa file.
-- Không đụng đến dịch vụ cốt lõi.
-- Luôn quét và chạy dry-run trước khi áp dụng.
-- Rollback dùng backup id từ phần tóm tắt sau khi apply.
+- Không đụng core services.
+- Luôn scan + dry-run trước khi apply.
+- Rollback dùng backup id trong apply summary.
 
-## Development
+### Phát triển
 
-Dự án không dùng database. Toàn bộ trạng thái lưu trong filesystem để dùng cục bộ.
+Project không dùng database. Mọi state được lưu trong filesystem.
+
+### Tác giả
+
+- Người tạo: Max Phan
+- Zalo: +84 77 9050531
+- Facebook: https://www.facebook.com/facebookcuamax/
+
+### Thông tin vui
+
+- Thiết kế chạy local; không gọi mạng ngoài trong app code.
+- Mỗi lần Apply đều tạo điểm rollback.
+- Rules là JSON nên dễ đọc và dễ chỉnh.
+- Detected CPU rules được làm mới theo mỗi lần scan.
+- Resource Monitor giúp nhìn nhanh app ngốn RAM và map service liên quan.
