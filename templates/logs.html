@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Logs - Windows Disk Cleaner</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        <h1>Audit Logs</h1>
+        <p>Every scan and cleanup is recorded for local review.</p>
+      </div>
+      <nav>
+        <a href="/">Dashboard</a>
+        <a href="/actions">Actions</a>
+        <a class="active" href="/logs">Logs</a>
+      </nav>
+    </header>
+
+    <div id="status-strip" class="status-strip">
+      <span>Mode</span>
+      <div class="badge warning status-sim">Loading</div>
+      <span>Job</span>
+      <div class="badge warning status-busy">Loading</div>
+      <span>Privilege</span>
+      <div class="badge warning status-admin">Loading</div>
+    </div>
+
+    <section>
+      <div class="section-title">
+        <h2>Recent Activity</h2>
+        <button id="refresh-logs" class="secondary">Refresh</button>
+      </div>
+      <table class="table" id="logs-table">
+        <thead>
+          <tr>
+            <th>Timestamp (UTC)</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Mode</th>
+            <th>Status</th>
+            <th>Bytes</th>
+            <th>Duration (ms)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="7">Loading...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+</body>
+</html>

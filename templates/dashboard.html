@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Windows Disk Cleaner Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        <h1>Windows Disk Cleaner Dashboard</h1>
+        <p>Local-only cleanup console with safe allowlist actions.</p>
+      </div>
+      <nav>
+        <a class="active" href="/">Dashboard</a>
+        <a href="/actions">Actions</a>
+        <a href="/logs">Logs</a>
+      </nav>
+    </header>
+
+    <div id="status-strip" class="status-strip">
+      <span>Mode</span>
+      <div class="badge warning status-sim">Loading</div>
+      <span>Job</span>
+      <div class="badge warning status-busy">Loading</div>
+      <span>Privilege</span>
+      <div class="badge warning status-admin">Loading</div>
+    </div>
+
+    <section>
+      <div class="section-title">
+        <h2>Drive Overview</h2>
+        <button id="refresh-dashboard" class="secondary">Refresh</button>
+      </div>
+      <div id="drives-grid" class="card-grid"></div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>Top Folders (Safe Scan)</h2>
+      </div>
+      <div id="folders-grid" class="card-grid"></div>
+      <div class="footer-note">Top folders are sampled from user profile only.</div>
+    </section>
+  </div>
+</body>
+</html>

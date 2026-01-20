@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Actions - Windows Disk Cleaner</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/script.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        <h1>Cleanup Actions</h1>
+        <p>Run scan or execute allowlisted modules with full audit logs.</p>
+      </div>
+      <nav>
+        <a href="/">Dashboard</a>
+        <a class="active" href="/actions">Actions</a>
+        <a href="/logs">Logs</a>
+      </nav>
+    </header>
+
+    <div id="status-strip" class="status-strip">
+      <span>Mode</span>
+      <div class="badge warning status-sim">Loading</div>
+      <span>Job</span>
+      <div class="badge warning status-busy">Loading</div>
+      <span>Privilege</span>
+      <div class="badge warning status-admin">Loading</div>
+    </div>
+
+    <section>
+      <div class="section-title">
+        <h2>Modules</h2>
+      </div>
+      <div id="actions-grid" class="card-grid"></div>
+    </section>
+  </div>
+</body>
+</html>
