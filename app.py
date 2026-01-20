@@ -1,3 +1,6 @@
+import argparse
+import os
+import socket
 import time
 
 from flask import Flask, jsonify, render_template, request
@@ -5,9 +8,16 @@ from flask import Flask, jsonify, render_template, request
 from functions.action_registry import get_action, list_actions
 from functions.disk_info import get_drives, get_top_folders
 from functions.logging_utils import append_log, read_logs
-from functions.security import SIMULATION_MODE, current_user, is_admin, job_lock
+from functions.security import (
+    SIMULATION_MODE,
+    current_user,
+    is_admin,
+    job_lock,
+    launch_admin_instance,
+)
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+DEFAULT_ADMIN_PORT = int(os.getenv("ADMIN_PORT", "5001"))
 
 
 def _action_response(action, mode, result, started_at, ended_at, dry_run=False):
@@ -38,6 +48,14 @@ def _log_action(action, mode, result, started_at, ended_at, dry_run=False):
         "errors": result.get("errors"),
     }
     append_log(entry)
+
+
+def _is_port_open(host, port, timeout=0.2):
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
 
 
 @app.route("/")
@@ -138,5 +156,30 @@ def api_logs():
     return jsonify({"ok": True, "logs": read_logs(limit=limit)})
 
 
+@app.route("/api/admin/launch", methods=["POST"])
+def api_admin_launch():
+    admin_port = DEFAULT_ADMIN_PORT
+    admin_url = f"http://127.0.0.1:{admin_port}"
+    if is_admin():
+        return jsonify({"ok": True, "already_admin": True, "url": admin_url})
+
+    if _is_port_open("127.0.0.1", admin_port):
+        return jsonify({"ok": True, "already_running": True, "url": admin_url})
+
+    result = launch_admin_instance(admin_port)
+    result["url"] = admin_url
+    return jsonify(result)
+
+
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Windows Disk Cleaner Dashboard")
+    parser.add_argument("--host", default=os.getenv("APP_HOST", "127.0.0.1"))
+    parser.add_argument("--port", type=int, default=int(os.getenv("APP_PORT", "5000")))
+    parser.add_argument("--debug", action="store_true")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    args = _parse_args()
+    app.config["APP_PORT"] = args.port
+    app.run(host=args.host, port=args.port, debug=args.debug)

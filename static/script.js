@@ -24,6 +24,63 @@ const fetchJSON = async (url, options = {}) => {
   return data;
 };
 
+let actionCache = [];
+let scanStats = {};
+
+const computeScanStats = (logs) => {
+  const stats = {};
+  logs.forEach((entry) => {
+    if (entry.mode !== "scan") return;
+    if (!entry.action_id || typeof entry.duration_ms !== "number") return;
+    if (!stats[entry.action_id]) {
+      stats[entry.action_id] = { totalMs: 0, count: 0 };
+    }
+    stats[entry.action_id].totalMs += entry.duration_ms;
+    stats[entry.action_id].count += 1;
+  });
+
+  const averages = {};
+  Object.keys(stats).forEach((actionId) => {
+    const item = stats[actionId];
+    if (item.count) {
+      averages[actionId] = Math.round(item.totalMs / item.count);
+    }
+  });
+  return averages;
+};
+
+const loadScanStats = async () => {
+  try {
+    const data = await fetchJSON("/api/logs?limit=200");
+    scanStats = computeScanStats(data.logs || []);
+  } catch (error) {
+    scanStats = {};
+  }
+};
+
+const formatDuration = (ms) => {
+  if (ms === null || ms === undefined) return "-";
+  const seconds = Number(ms) / 1000;
+  if (seconds < 1) return `${Math.round(ms)} ms`;
+  return `${seconds.toFixed(2)} s`;
+};
+
+const startScanFallback = (container, actionId) => {
+  const start = Date.now();
+  const etaMs = scanStats[actionId];
+  const etaText = etaMs ? `ETA ~${formatDuration(etaMs)}` : "ETA unknown";
+  container.textContent = `Scanning... ${etaText}`;
+
+  const timer = setInterval(() => {
+    const elapsed = Date.now() - start;
+    const elapsedText = formatDuration(elapsed);
+    const hint = etaMs ? ` ETA ~${formatDuration(etaMs)}` : "";
+    container.textContent = `Scanning... elapsed ${elapsedText}.${hint}`;
+  }, 2000);
+
+  return () => clearInterval(timer);
+};
+
 const setStatusStrip = async () => {
   const status = document.getElementById("status-strip");
   if (!status) return;
@@ -91,15 +148,44 @@ const loadDashboard = async () => {
 
 const renderActionResult = (container, payload) => {
   const summary = payload.result || {};
-  const bytes = summary.bytes || summary.estimated_bytes;
+  const bytes = summary.bytes ?? summary.estimated_bytes;
   const status = payload.ok ? "success" : "danger";
   const label = payload.ok ? "Success" : "Failed";
   container.innerHTML = `
     <div class="badge ${status}">${label}</div>
-    <div>Duration: ${payload.duration_ms} ms</div>
-    <div>Bytes: ${bytes !== undefined ? formatBytes(bytes) : "-"}</div>
+    <div>Mode: ${payload.mode || "-"}</div>
+    <div>Duration: ${formatDuration(payload.duration_ms)}</div>
+    <div>Estimated bytes: ${bytes !== undefined ? formatBytes(bytes) : "-"}</div>
     <pre>${JSON.stringify(payload, null, 2)}</pre>
   `;
+};
+
+const scanAction = async (actionId, resultBox) => {
+  const stopFallback = startScanFallback(resultBox, actionId);
+  try {
+    const response = await fetchJSON(`/api/actions/${actionId}/scan`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    renderActionResult(resultBox, response);
+  } catch (error) {
+    resultBox.textContent = error.payload?.error || error.message;
+  } finally {
+    stopFallback();
+  }
+};
+
+const scanAllActions = async () => {
+  if (!actionCache.length) {
+    await loadActions();
+  }
+  await loadScanStats();
+  const tasks = actionCache.map((action) => {
+    const resultBox = document.getElementById(`result-${action.id}`);
+    if (!resultBox) return Promise.resolve();
+    return scanAction(action.id, resultBox);
+  });
+  await Promise.allSettled(tasks);
 };
 
 const loadActions = async () => {
@@ -109,7 +195,9 @@ const loadActions = async () => {
 
   try {
     const data = await fetchJSON("/api/actions");
-    data.actions.forEach((action, index) => {
+    actionCache = data.actions || [];
+    await loadScanStats();
+    actionCache.forEach((action, index) => {
       const card = document.createElement("div");
       card.className = "card";
       card.style.animationDelay = `${index * 0.04}s`;
@@ -121,7 +209,8 @@ const loadActions = async () => {
         </div>
         <div class="actions-row">
           <button class="secondary" data-action="scan">Scan</button>
-          <button class="danger" data-action="run">Run</button>
+          ${action.requires_admin ? "<button class=\"secondary\" data-action=\"admin\">Admin ON</button>" : ""}
+          <button class="danger" data-action="run">Clean</button>
         </div>
         <div class="result-box" id="result-${action.id}">No activity yet.</div>
       `;
@@ -129,27 +218,19 @@ const loadActions = async () => {
 
       const scanBtn = card.querySelector("button[data-action='scan']");
       const runBtn = card.querySelector("button[data-action='run']");
+      const adminBtn = card.querySelector("button[data-action='admin']");
       const resultBox = card.querySelector(`#result-${action.id}`);
 
       scanBtn.addEventListener("click", async () => {
-        resultBox.textContent = "Scanning...";
-        try {
-          const response = await fetchJSON(`/api/actions/${action.id}/scan`, {
-            method: "POST",
-            body: JSON.stringify({}),
-          });
-          renderActionResult(resultBox, response);
-        } catch (error) {
-          resultBox.textContent = error.payload?.error || error.message;
-        }
+        await scanAction(action.id, resultBox);
       });
 
       runBtn.addEventListener("click", async () => {
         const confirmed = window.confirm(
-          `Run ${action.name}? This will delete files.\n\nClick OK to confirm.`
+          `Clean ${action.name}? This will delete files.\n\nClick OK to confirm.`
         );
         if (!confirmed) return;
-        resultBox.textContent = "Running...";
+        resultBox.textContent = "Cleaning...";
         try {
           const response = await fetchJSON(`/api/actions/${action.id}/run`, {
             method: "POST",
@@ -160,6 +241,28 @@ const loadActions = async () => {
           resultBox.textContent = error.payload?.error || error.message;
         }
       });
+
+      if (adminBtn) {
+        adminBtn.addEventListener("click", async () => {
+          resultBox.textContent = "Requesting admin mode...";
+          try {
+            const response = await fetchJSON("/api/admin/launch", {
+              method: "POST",
+              body: JSON.stringify({}),
+            });
+            if (response.url) {
+              window.open(response.url, "_blank");
+            }
+            resultBox.innerHTML = `
+              <div class="badge success">Admin request sent</div>
+              <div>Open: ${response.url || "Check admin prompt"}</div>
+              <pre>${JSON.stringify(response, null, 2)}</pre>
+            `;
+          } catch (error) {
+            resultBox.textContent = error.payload?.error || error.message;
+          }
+        });
+      }
     });
   } catch (error) {
     actionsGrid.innerHTML = `<div class="card"><h3>Error</h3><p>${error.message}</p></div>`;
@@ -184,7 +287,7 @@ const loadLogs = async () => {
         <td>${log.mode || ""}</td>
         <td>${log.status || ""}</td>
         <td>${formatBytes(log.bytes)}</td>
-        <td>${log.duration_ms || ""}</td>
+        <td>${formatDuration(log.duration_ms)}</td>
       `;
       tbody.appendChild(row);
     });
@@ -202,6 +305,10 @@ const bindRefresh = () => {
   const refreshLogs = document.getElementById("refresh-logs");
   if (refreshLogs) {
     refreshLogs.addEventListener("click", loadLogs);
+  }
+  const scanAllBtn = document.getElementById("scan-all");
+  if (scanAllBtn) {
+    scanAllBtn.addEventListener("click", scanAllActions);
   }
 };
 

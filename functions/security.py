@@ -3,6 +3,7 @@ import fnmatch
 import getpass
 import os
 import subprocess
+import sys
 import threading
 import time
 
@@ -269,6 +270,28 @@ def run_powershell(command, timeout=300):
 
 def run_cmd(args, timeout=300):
     return _run_subprocess(args, timeout=timeout)
+
+
+def _ps_quote(value):
+    return "'" + value.replace("'", "''") + "'"
+
+
+def launch_admin_instance(port):
+    if not is_windows():
+        return {"ok": False, "error": "windows_only"}
+    if is_admin():
+        return {"ok": True, "already_admin": True}
+    python_exe = sys.executable
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    app_path = os.path.join(base_dir, "app.py")
+    command = (
+        "Start-Process -Verb RunAs "
+        f"-FilePath {_ps_quote(python_exe)} "
+        f"-ArgumentList @({_ps_quote(app_path)}, '--port', '{port}') "
+        f"-WorkingDirectory {_ps_quote(base_dir)}"
+    )
+    result = run_powershell(command)
+    return result
 
 
 class JobLock:
