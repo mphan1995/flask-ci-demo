@@ -4,24 +4,84 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ title or "MusicBox" }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <div class="brand">
           <div class="logo">MB</div>
-          <div>
+          <div class="brand-text">
             <div class="name">MusicBox</div>
-            <div class="subtitle">Raspberry Pi Media Server</div>
+            <div class="subtitle">Raspberry Pi Mobile Audio</div>
           </div>
+          <span class="status-dot" id="status-dot" aria-label="status"></span>
         </div>
+        <nav class="top-links">
+          <a href="/" class="nav-link">Now</a>
+          <a href="/library" class="nav-link">Library</a>
+          <a href="/playlists" class="nav-link">Playlists</a>
+          <a href="/downloads" class="nav-link">Downloads</a>
+          <a href="/settings" class="nav-link">Settings</a>
+        </nav>
         <button class="ghost" id="btn-scan">Scan</button>
       </header>
 
-      <main class="content">
-        {% block content %}{% endblock %}
-      </main>
+      <div class="layout">
+        <main class="content">
+          {% block content %}{% endblock %}
+        </main>
+        <aside class="sidebar">
+          {% block sidebar %}
+          <div class="side-card profile-card">
+            <div class="portrait">MB</div>
+          <div class="eyebrow">Welcome</div>
+            <h3>MusicBox Mobile</h3>
+            <p>Control playback, playlists, and downloads from your Pi 4.</p>
+            <div class="side-actions">
+              <a class="ghost" href="/library">Library</a>
+              <a class="ghost" href="/downloads">Downloads</a>
+            </div>
+          </div>
+          <div class="side-card stats-card">
+            <div class="stat">
+              <span>Tracks</span>
+              <strong id="count-tracks">0</strong>
+            </div>
+            <div class="stat">
+              <span>Playlists</span>
+              <strong id="count-playlists">0</strong>
+            </div>
+            <div class="stat">
+              <span>Downloads</span>
+              <strong id="count-downloads">0</strong>
+            </div>
+          </div>
+          <div class="side-card recent-card">
+            <div class="eyebrow">Recent</div>
+            <div id="recent-list" class="recent-list">No recent tracks.</div>
+          </div>
+          {% endblock %}
+        </aside>
+      </div>
+
+      <div class="mini-player" id="mini-player">
+        <div class="mini-cover" id="mini-cover">♪</div>
+        <div class="mini-meta">
+          <div class="mini-title" id="mini-title">Not playing</div>
+          <div class="mini-artist" id="mini-artist">---</div>
+          <div class="mini-progress">
+            <span id="mini-pos">0:00</span>
+            <div class="bar"><div id="mini-bar"></div></div>
+            <span id="mini-dur">0:00</span>
+          </div>
+        </div>
+        <div class="mini-actions">
+          <button class="ghost" data-action="prev">Prev</button>
+          <button class="primary" data-action="play">Play</button>
+          <button class="ghost" data-action="pause">Pause</button>
+        </div>
+      </div>
 
       <nav class="bottom-nav">
         <a href="/" class="nav-item">Now</a>
@@ -32,7 +92,27 @@
       </nav>
     </div>
 
+    <div class="modal" id="yt-modal" hidden>
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-card">
+        <button class="modal-close" data-close>✕</button>
+        <div class="modal-body">
+          <iframe
+            id="yt-frame"
+            title="YouTube Player"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
     <script src="{{ url_for('static', filename='js/sse.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/player.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/library.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/playlists.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/downloads.js') }}"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   </body>
 </html>

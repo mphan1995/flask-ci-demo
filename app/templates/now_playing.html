@@ -1,48 +1,49 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="now-playing reveal">
-  <div class="cover">
+<section class="hero-card reveal">
+  <div class="hero-media">
     <div class="cover-art" id="cover-art">🎵</div>
   </div>
-  <div class="track-meta">
-    <h1 id="track-title">Chua co bai hat</h1>
-    <p id="track-artist">San sang phat</p>
-  </div>
+  <div class="hero-content">
+    <div class="eyebrow">Now playing</div>
+    <h1 id="track-title">No track yet</h1>
+    <p class="lede" id="track-artist">Ready to play</p>
 
-  <div class="progress">
-    <div class="time">
-      <span id="pos">0:00</span>
-      <span id="dur">0:00</span>
+    <div class="progress">
+      <div class="time">
+        <span id="pos">0:00</span>
+        <span id="dur">0:00</span>
+      </div>
+      <input id="seek" type="range" min="0" max="100" value="0" />
     </div>
-    <input id="seek" type="range" min="0" max="100" value="0" />
-  </div>
 
-  <div class="controls">
-    <button class="chip" data-action="prev">Prev</button>
-    <button class="primary" data-action="play">Play</button>
-    <button class="chip" data-action="pause">Pause</button>
-    <button class="chip" data-action="next">Next</button>
-  </div>
-
-  <div class="sub-controls">
-    <div class="toggle">
-      <label>Shuffle</label>
-      <input id="shuffle" type="checkbox" />
+    <div class="controls">
+      <button class="ghost" data-action="prev">Prev</button>
+      <button class="primary" data-action="play">Play</button>
+      <button class="ghost" data-action="pause">Pause</button>
+      <button class="ghost" data-action="next">Next</button>
     </div>
-    <div class="toggle">
-      <label>Repeat</label>
-      <select id="repeat">
-        <option value="off">Off</option>
-        <option value="one">One</option>
-        <option value="all">All</option>
-      </select>
-    </div>
-  </div>
 
-  <div class="volume">
-    <label>Volume</label>
-    <input id="volume" type="range" min="0" max="100" value="70" />
-    <button class="ghost" id="mute">Mute</button>
+    <div class="sub-controls">
+      <div class="toggle">
+        <label>Shuffle</label>
+        <input id="shuffle" type="checkbox" />
+      </div>
+      <div class="toggle">
+        <label>Repeat</label>
+        <select id="repeat">
+          <option value="off">Off</option>
+          <option value="one">One</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="volume">
+      <label>Volume</label>
+      <input id="volume" type="range" min="0" max="100" value="70" />
+      <button class="ghost" id="mute">Mute</button>
+    </div>
   </div>
 </section>
 {% endblock %}

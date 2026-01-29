@@ -2,7 +2,10 @@
 {% block content %}
 <section class="panel reveal">
   <div class="panel-head">
-    <h1>Downloads</h1>
+    <div>
+      <h1>Downloads</h1>
+      <p class="lede">Paste a supported audio link or open YouTube inline.</p>
+    </div>
     <div class="inline">
       <input id="download-url" type="url" placeholder="Paste link..." />
       <select id="download-mode">
@@ -12,6 +15,7 @@
       <button class="primary" id="start-download">Download</button>
     </div>
     <div id="download-message" class="message"></div>
+    <div id="download-actions" class="actions"></div>
   </div>
   <div class="list" id="download-list"></div>
 </section>
