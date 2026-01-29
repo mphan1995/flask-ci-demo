@@ -12,9 +12,10 @@ from app.models import DownloadJob
 
 
 class DownloadManager:
-    def __init__(self, storage, event_bus=None, max_workers: int = 2):
+    def __init__(self, storage, event_bus=None, library=None, max_workers: int = 2):
         self.storage = storage
         self.event_bus = event_bus
+        self.library = library
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
     def enqueue(self, url: str, mode: str, target_dir: Path, max_size_mb: int) -> int:
@@ -65,6 +66,11 @@ class DownloadManager:
                         self._emit({"id": job_id, "status": "downloading", "progress": progress})
 
             self.storage.update_download(job_id, status="done", progress=100, local_path=str(dest_path))
+            if self.library:
+                try:
+                    self.library.add_local_file(dest_path)
+                except Exception:
+                    pass
             self._emit({"id": job_id, "status": "done", "progress": 100})
         except Exception as exc:  # noqa: BLE001
             self.storage.update_download(job_id, status="failed", error=str(exc))
@@ -80,4 +86,3 @@ class DownloadManager:
     def cleanup_cache(self, cache_dir: Path, ttl_hours: int, max_gb: int):
         # TODO: implement TTL + size-based cleanup
         _ = cache_dir, ttl_hours, max_gb
-
