@@ -1,0 +1,49 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Manrope:wght@400;500;600&display=swap");
+
+:root {
+  --bg: #f7f1ea;
+  --paper: #ffffff;
+  --paper-2: #f7f4ee;
+  --ink: #1f1f24;
+  --muted: #5e6575;
+  --accent: #e18a9b;
+  --accent-2: #6bb7ad;
+  --accent-3: #f2c46b;
+  --border: rgba(35, 35, 45, 0.12);
+  --shadow: rgba(70, 60, 90, 0.12);
+  --radius: 22px;
+  --font-display: "Playfair Display", serif;
+  --font-body: "Manrope", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: radial-gradient(900px 500px at 15% -10%, #f9d7dc, transparent),
+    radial-gradient(1100px 600px at 120% 10%, #d6eff0, transparent),
+    var(--bg);
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  font-size: clamp(26px, 4vw, 40px);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
