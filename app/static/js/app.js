@@ -6,13 +6,32 @@
       body: JSON.stringify(body),
     });
 
+  const setMessage = (text, isError = false) => {
+    const el = document.getElementById("download-message");
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.toggle("error", Boolean(isError));
+  };
+
   const bindPlayback = () => {
     document.querySelectorAll("[data-action]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const action = btn.dataset.action;
         if (action === "play") {
-          const trackId = btn.dataset.trackId || 1;
-          post("/api/play", { track_id: Number(trackId) });
+          const trackId = btn.dataset.trackId;
+          if (trackId) {
+            post("/api/play", { track_id: Number(trackId) });
+            return;
+          }
+          fetch("/api/tracks")
+            .then((res) => res.json())
+            .then((tracks) => {
+              if (!tracks.length) {
+                window.alert("Chua co bai hat trong thu vien");
+                return;
+              }
+              post("/api/play", { track_id: tracks[0].id });
+            });
           return;
         }
         post(`/api/${action}`);
@@ -82,6 +101,21 @@
     });
   };
 
+  const loadDownloads = async () => {
+    const list = document.getElementById("download-list");
+    if (!list) return;
+    const res = await fetch("/api/downloads");
+    const data = await res.json();
+    list.innerHTML = "";
+    data.forEach((d) => {
+      const item = document.createElement("div");
+      item.className = "list-item";
+      item.dataset.id = d.id;
+      item.innerHTML = `<div>Job #${d.id} - ${d.status}</div><div>${Math.round(d.progress || 0)}%</div>`;
+      list.appendChild(item);
+    });
+  };
+
   const bindPlaylistCreate = () => {
     const btn = document.getElementById("create-playlist");
     if (!btn) return;
@@ -102,8 +136,22 @@
     btn.addEventListener("click", () => {
       const url = document.getElementById("download-url").value.trim();
       const mode = document.getElementById("download-mode").value;
-      if (!url) return;
-      post("/api/downloads", { url, mode });
+      if (!url) {
+        setMessage("Link không hợp lệ", true);
+        return;
+      }
+      post("/api/downloads", { url, mode }).then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setMessage(data.message || "Link không hợp lệ", true);
+          return;
+        }
+        if (res.status === 202) {
+          setMessage(data.message || "Nguon hop le, dang cho adapter xu ly.");
+          return;
+        }
+        setMessage("Dang tai...");
+      });
     });
   };
 
@@ -121,4 +169,5 @@
   bindScan();
   loadTracks();
   loadPlaylists();
+  loadDownloads();
 })();
