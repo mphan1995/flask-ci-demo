@@ -18,4 +18,5 @@ class Config:
     DEFAULT_VOLUME = int(os.getenv("DEFAULT_VOLUME", 70))
     CACHE_TTL_HOURS = int(os.getenv("CACHE_TTL_HOURS", 72))
     CACHE_MAX_GB = int(os.getenv("CACHE_MAX_GB", 10))
-
+    RESOLVER_URL = os.getenv("MUSICBOX_RESOLVER_URL", "")
+    RESOLVER_TIMEOUT = int(os.getenv("MUSICBOX_RESOLVER_TIMEOUT", 10))

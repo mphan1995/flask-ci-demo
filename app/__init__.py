@@ -27,7 +27,7 @@ def create_app():
     player = PlayerEngine(event_bus=events, default_volume=app.config["DEFAULT_VOLUME"])
     library = LibraryManager(app.config["LOCAL_MUSIC_DIR"], storage)
     playlist = PlaylistManager(storage)
-    downloads = DownloadManager(storage, event_bus=events)
+    downloads = DownloadManager(storage, event_bus=events, library=library)
 
     app.extensions["events"] = events
     app.extensions["storage"] = storage
@@ -38,4 +38,3 @@ def create_app():
 
     register_routes(app)
     return app
-
