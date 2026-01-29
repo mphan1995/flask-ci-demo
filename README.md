@@ -25,6 +25,12 @@ export SECRET_KEY=change-me
 - Nhan dien: YouTube / Nhaccuatui / Zing MP3 (can adapter hop phap de tai)
 - Link khac (image/web/khong ro dinh dang) -> **Link khong hop le**
 
+Neu co resolver hop phap (API noi bo):
+```
+export MUSICBOX_RESOLVER_URL=http://localhost:9000/resolve
+export MUSICBOX_RESOLVER_TIMEOUT=10
+```
+
 ## Production (systemd)
 Mau service: `deploy/systemd/musicbox.service`
 ```
@@ -35,4 +41,3 @@ sudo systemctl start musicbox
 
 ## Audio engine
 De xuat: VLC (stream) / mpg123 (local). Ket noi ALSA/HDMI/USB DAC.
-
