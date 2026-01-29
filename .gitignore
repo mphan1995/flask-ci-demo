@@ -1,0 +1,84 @@
+########################
+# Python
+########################
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+########################
+# Virtual Environment
+########################
+.venv/
+venv/
+env/
+ENV/
+
+########################
+# Flask / Runtime
+########################
+instance/
+.flaskenv
+.env
+.env.*
+*.log
+
+########################
+# Database & Data
+########################
+data/db.sqlite
+data/*.sqlite
+data/*.db
+
+########################
+# Music & Cache Data
+########################
+data/local/
+data/cache/
+*.mp3
+*.wav
+*.flac
+*.ogg
+
+########################
+# Uploads / Downloads temp
+########################
+uploads/
+downloads/
+tmp/
+
+########################
+# Frontend build / tooling
+########################
+node_modules/
+dist/
+build/
+.vite/
+.parcel-cache/
+
+########################
+# Editor / OS
+########################
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+########################
+# Deployment secrets
+########################
+deploy/nginx/*.key
+deploy/nginx/*.crt
+deploy/nginx/*.pem
+
+########################
+# Systemd / OS noise
+########################
+*.service~
+*.swp
+
+########################
+# Docs build
+########################
+docs/_build/

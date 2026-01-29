@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel reveal">
+  <div class="panel-head">
+    <h1>Library</h1>
+    <input id="search" type="search" placeholder="Search title, artist..." />
+  </div>
+  <div class="filters">
+    <button class="chip active" data-source="">All</button>
+    <button class="chip" data-source="local">Local</button>
+    <button class="chip" data-source="remote">Remote</button>
+  </div>
+  <div class="list" id="track-list"></div>
+</section>
+{% endblock %}

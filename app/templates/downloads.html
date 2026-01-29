@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel reveal">
+  <div class="panel-head">
+    <h1>Downloads</h1>
+    <div class="inline">
+      <input id="download-url" type="url" placeholder="Paste link..." />
+      <select id="download-mode">
+        <option value="direct">Direct</option>
+        <option value="cache">Cache</option>
+      </select>
+      <button class="primary" id="start-download">Download</button>
+    </div>
+  </div>
+  <div class="list" id="download-list"></div>
+</section>
+{% endblock %}

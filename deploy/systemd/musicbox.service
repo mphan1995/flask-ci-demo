@@ -1,0 +1,16 @@
+[Unit]
+Description=MusicBox Flask Server
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/srv/musicbox
+Environment=MUSICBOX_DATA_DIR=/srv/music
+Environment=MUSICBOX_LOCAL_DIR=/srv/music/local
+Environment=MUSICBOX_CACHE_DIR=/srv/music/cache
+Environment=MUSICBOX_DB_PATH=/srv/music/db.sqlite
+ExecStart=/srv/musicbox/.venv/bin/gunicorn -w 2 -b 0.0.0.0:8000 wsgi:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

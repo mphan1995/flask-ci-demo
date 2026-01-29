@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel reveal">
+  <div class="panel-head">
+    <h1>Settings</h1>
+  </div>
+  <div class="settings-grid">
+    <div class="card">
+      <h3>Output device</h3>
+      <select>
+        <option>Default (ALSA)</option>
+        <option>HDMI</option>
+        <option>3.5mm</option>
+        <option>USB DAC</option>
+        <option>Bluetooth</option>
+      </select>
+    </div>
+    <div class="card">
+      <h3>Cache</h3>
+      <label>Max size (GB)</label>
+      <input type="number" value="10" min="1" />
+      <label>TTL (hours)</label>
+      <input type="number" value="72" min="1" />
+    </div>
+    <div class="card">
+      <h3>Library</h3>
+      <button class="ghost" id="scan-library">Scan local folder</button>
+    </div>
+  </div>
+</section>
+{% endblock %}

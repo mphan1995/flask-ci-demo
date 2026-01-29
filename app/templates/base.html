@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ title or "MusicBox" }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">MB</div>
+          <div>
+            <div class="name">MusicBox</div>
+            <div class="subtitle">Raspberry Pi Media Server</div>
+          </div>
+        </div>
+        <button class="ghost" id="btn-scan">Scan</button>
+      </header>
+
+      <main class="content">
+        {% block content %}{% endblock %}
+      </main>
+
+      <nav class="bottom-nav">
+        <a href="/" class="nav-item">Now</a>
+        <a href="/library" class="nav-item">Library</a>
+        <a href="/playlists" class="nav-item">Playlists</a>
+        <a href="/downloads" class="nav-item">Downloads</a>
+        <a href="/settings" class="nav-item">Settings</a>
+      </nav>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/sse.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>
