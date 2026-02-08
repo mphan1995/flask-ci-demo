@@ -1,0 +1,17 @@
+logging:
+  level: INFO
+  format: json
+  include:
+    - timestamp
+    - level
+    - message
+    - peer_id
+    - session_id
+    - scenario_id
+
+sinks:
+  - type: stdout
+
+correlation:
+  request_id_header: X-Request-ID
+  peer_context_enabled: true

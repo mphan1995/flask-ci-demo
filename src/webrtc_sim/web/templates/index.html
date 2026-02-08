@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebRTC Peer Simulator</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body data-mode="interactive">
+  <div id="orb-field-container">
+    <svg id="orb-field" aria-hidden="true"></svg>
+  </div>
+  <main class="page">
+    <div class="watermark">Max Phan - DevOps | +84 77 9050531</div>
+    <header class="hero">
+      <div>
+        <h1>WebRTC Peer Simulator</h1>
+        <p>Điều khiển peers giả lập để test SFU/MCU và hạ tầng WebRTC.</p>
+        <div class="badge-row">
+          <span class="badge" id="mode-badge">Mode: —</span>
+          <span class="badge" id="health-badge">Health: …</span>
+          <span class="badge" id="peer-count">Peers: 0</span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="ghost" id="refresh">Refresh</button>
+        <button class="ghost danger" id="stop-all">Stop All</button>
+      </div>
+    </header>
+
+    <section class="grid two">
+      <div class="card">
+        <h2>Tạo peer mới</h2>
+        <div class="field">
+          <label for="target">Target URL</label>
+          <input id="target" placeholder="wss://sfu.example/signal" />
+        </div>
+        <div class="field">
+          <label for="video_profile">Video Profile</label>
+          <input id="video_profile" value="default-video" />
+        </div>
+        <div class="field">
+          <label for="audio_profile">Audio Profile</label>
+          <input id="audio_profile" value="default-audio" />
+        </div>
+        <div class="actions">
+          <button id="create">Create</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Scale peers</h2>
+        <div class="field">
+          <label for="scale_count">Target Count</label>
+          <input id="scale_count" type="number" min="0" value="1" />
+        </div>
+        <div class="field">
+          <label for="scale_target">Target URL (áp dụng khi scale lên)</label>
+          <input id="scale_target" placeholder="wss://sfu.example/signal" />
+        </div>
+        <div class="field half">
+          <div>
+            <label for="scale_video_profile">Video Profile</label>
+            <input id="scale_video_profile" value="default-video" />
+          </div>
+          <div>
+            <label for="scale_audio_profile">Audio Profile</label>
+            <input id="scale_audio_profile" value="default-audio" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="scale">Scale</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>Danh sách peers</h2>
+          <p class="muted">Kết nối đang chạy, trạng thái và thao tác nhanh.</p>
+        </div>
+        <div class="pill" id="last-updated">Cập nhật: —</div>
+      </div>
+      <table id="peer-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>State</th>
+            <th>Target</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Logs</h2>
+        <button class="ghost" id="clear-log">Clear</button>
+      </div>
+      <div id="log" class="log"></div>
+    </section>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>

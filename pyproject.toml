@@ -1,0 +1,26 @@
+[project]
+name = "webrtc-peer-simulator"
+version = "0.1.0"
+description = "Design skeleton for a WebRTC peer simulator built with Python and aiortc."
+requires-python = ">=3.11"
+
+# Dependency declarations are intentionally conceptual in this scaffold.
+# Add exact versions during implementation.
+[project.optional-dependencies]
+runtime = [
+  "flask",
+  "aiortc",
+  "numpy",
+  "opencv-python",
+]
+observability = [
+  "prometheus-client",
+]
+test = [
+  "pytest",
+  "pytest-asyncio",
+]
+
+[tool.webrtc_sim]
+status = "skeleton-only"
+implementation = "pending"

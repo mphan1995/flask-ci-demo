@@ -1,0 +1,13 @@
+video:
+  source: synthetic
+  width: 1280
+  height: 720
+  fps: 30
+  pattern: color_bars
+  overlay:
+    enabled: true
+    peer_id: true
+    timestamp: true
+    frame_counter: true
+  pacing:
+    jitter_emulation_ms: 0

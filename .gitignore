@@ -1,0 +1,42 @@
+# Python build & cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Packaging
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# Logs & coverage
+*.log
+coverage/
+.coverage*
+.pytest_cache/
+
+# IDE/editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+
+# Node/Frontend (just in case)
+node_modules/
+*.map
+
+# OS noise
+.DS_Store
+Thumbs.db

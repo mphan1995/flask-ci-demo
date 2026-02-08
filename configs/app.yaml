@@ -1,0 +1,30 @@
+app:
+  name: webrtc-peer-simulator
+  mode: headless
+  host: 0.0.0.0
+  port: 8080
+
+runtime:
+  asyncio_policy: default
+  shutdown_grace_seconds: 15
+
+control_plane:
+  api_enabled: true
+  web_ui_enabled: true
+
+signaling:
+  transport: websocket
+  http_enabled: true
+  ws_enabled: true
+  session_ttl_seconds: 180
+
+peers:
+  default_count: 1
+  max_count: 1000
+  join_strategy: staggered
+
+headless:
+  scenario_file: configs/scenarios/single-peer.yaml
+
+interactive:
+  browser_ui_path: /ui

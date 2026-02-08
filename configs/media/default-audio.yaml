@@ -1,0 +1,10 @@
+audio:
+  source: synthetic
+  sample_rate: 48000
+  channels: 1
+  profile: tone
+  tone_hz: 440
+  cadence:
+    mode: continuous
+  pacing:
+    jitter_emulation_ms: 0

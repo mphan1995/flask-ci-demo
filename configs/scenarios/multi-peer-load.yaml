@@ -1,0 +1,22 @@
+scenario:
+  id: multi-peer-load
+  description: Multi-peer load simulation profile.
+  mode: headless
+
+peers:
+  count: 200
+  startup:
+    strategy: staggered
+    peers_per_second: 5
+  churn:
+    enabled: true
+    join_leave_interval_seconds: 30
+
+media_profile:
+  video_profile: load-video
+  audio_profile: load-audio
+
+lifecycle:
+  connect_timeout_seconds: 30
+  stream_duration_seconds: 900
+  teardown_timeout_seconds: 20

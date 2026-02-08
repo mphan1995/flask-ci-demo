@@ -1,0 +1,11 @@
+version: "3.9"
+
+# Skeleton CI topology.
+#
+# Planned services:
+# - simulator: headless peer simulator
+# - target-sfu: optional SFU endpoint for integration tests
+# - observability: optional metrics/log sink
+#
+# Concrete service definitions are deferred to implementation.
+services: {}

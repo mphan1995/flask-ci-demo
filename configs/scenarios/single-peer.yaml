@@ -1,0 +1,18 @@
+scenario:
+  id: single-peer-smoke
+  description: Single peer lifecycle smoke scenario.
+  mode: headless
+
+peers:
+  count: 1
+  startup:
+    strategy: immediate
+
+media_profile:
+  video_profile: default-video
+  audio_profile: default-audio
+
+lifecycle:
+  connect_timeout_seconds: 20
+  stream_duration_seconds: 60
+  teardown_timeout_seconds: 10
